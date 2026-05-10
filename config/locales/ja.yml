@@ -1,0 +1,179 @@
+ja:
+  devise:
+    failure:
+      already_authenticated: "すでにログインしています。"
+      inactive: "アカウントが有効化されていません。"
+      invalid: "メールアドレスまたはパスワードが違います。"
+      locked: "アカウントがロックされています。"
+      last_attempt: "もう一度失敗するとアカウントがロックされます。"
+      not_found_in_database: "メールアドレスまたはパスワードが違います。"
+      timeout: "セッションがタイムアウトしました。再度ログインしてください。"
+      unauthenticated: "ログインしてください。"
+      unconfirmed: "メールアドレスの確認が必要です。"
+    sessions:
+      signed_in: "ログインしました。"
+      signed_out: "ログアウトしました。"
+      already_signed_in: "すでにログインしています。"
+      inactive: "アカウントが有効化されていません。"
+      invalid: "メールアドレスまたはパスワードが違います。"
+      unauthenticated: "ログインしてください。"
+      unconfirmed: "メールアドレスの確認が必要です。"
+    registrations:
+      signed_up: "アカウントを登録しました。"
+      signed_up_but_inactive: "アカウントが有効化されていないためログインできません。"
+      signed_up_but_unconfirmed: "確認メールを送信しました。メール内のリンクをクリックしてください。"
+      updated: "アカウント情報を更新しました。"
+      update_needs_confirmation: "アカウント情報を更新しました。メールアドレスの変更には確認が必要です。"
+      destroyed: "アカウントを削除しました。"
+    passwords:
+      send_instructions: "パスワードのリセット手順をメールで送信しました。"
+      updated: "パスワードを変更しました。"
+      updated_not_active: "パスワードを変更しました。"
+      send_paranoid_instructions: "メールアドレスが登録済みの場合、パスワードリセットの手順をメールで送信しました。"
+      no_token: "このページにはアクセスできません。パスワードリセットメールのリンクからアクセスしてください。"
+    confirmations:
+      send_instructions: "確認メールを送信しました。"
+      send_paranoid_instructions: "メールアドレスが登録済みの場合、確認メールを送信しました。"
+      confirmed: "メールアドレスを確認しました。ログインしました。"
+    unlocks:
+      send_instructions: "アカウントのロック解除手順をメールで送信しました。"
+      send_paranoid_instructions: "メールアドレスが登録済みの場合、ロック解除の手順をメールで送信しました。"
+      unlocked: "アカウントのロックを解除しました。"
+    mailer:
+      confirmation_instructions:
+        subject: "メールアドレスの確認"
+      reset_password_instructions:
+        subject: "パスワードリセットの手順"
+      unlock_instructions:
+        subject: "アカウントのロック解除"
+  activerecord:
+    errors:
+      messages:
+        record_invalid: 'バリデーションに失敗しました: %{errors}'
+        restrict_dependent_destroy:
+          has_one: "%{record}が存在しているので削除できません"
+          has_many: "%{record}が存在しているので削除できません"
+    models:
+      user: ユーザー
+    attributes:
+      user:
+        id: ID
+        name: 名前
+        email: メールアドレス
+        department: 所属
+        basic_time: 基本時間
+        work_time: 勤務時間
+        password: パスワード
+        password_confirmation: パスワード再入力
+        created_at: 作成日
+        updated_at: 更新日
+      attendance:
+        worked_on: 日付
+        started_at: 出社時間
+        finished_at: 退社時間
+        note: 備考
+        user: ユーザーID
+  date:
+    abbr_day_names:
+    - 日
+    - 月
+    - 火
+    - 水
+    - 木
+    - 金
+    - 土
+    abbr_month_names:
+    -
+    - 1月
+    - 2月
+    - 3月
+    - 4月
+    - 5月
+    - 6月
+    - 7月
+    - 8月
+    - 9月
+    - 10月
+    - 11月
+    - 12月
+    day_names:
+    - 日曜日
+    - 月曜日
+    - 火曜日
+    - 水曜日
+    - 木曜日
+    - 金曜日
+    - 土曜日
+    formats:
+      default: "%Y/%m/%d"
+      long: "%Y年%m月%d日(%a)"
+      middle: "%Y年%m月"
+      short: "%-m/%-d"
+    month_names:
+    -
+    - 1月
+    - 2月
+    - 3月
+    - 4月
+    - 5月
+    - 6月
+    - 7月
+    - 8月
+    - 9月
+    - 10月
+    - 11月
+    - 12月
+    order:
+    - :year
+    - :month
+    - :day
+  errors:
+    format: "%{attribute}%{message}"
+    messages:
+      not_saved:
+        one: "%{resource}に%{count}件のエラーがあります"
+        other: "%{resource}に%{count}件のエラーがあります"
+      accepted: を受諾してください
+      blank: を入力してください
+      confirmation: と%{attribute}の入力が一致しません
+      empty: を入力してください
+      equal_to: は%{count}にしてください
+      even: は偶数にしてください
+      exclusion: は予約されています
+      greater_than: は%{count}より大きい値にしてください
+      greater_than_or_equal_to: は%{count}以上の値にしてください
+      inclusion: は一覧にありません
+      invalid: は不正な値です
+      less_than: は%{count}より小さい値にしてください
+      less_than_or_equal_to: は%{count}以下の値にしてください
+      model_invalid: 'バリデーションに失敗しました: %{errors}'
+      not_a_number: は数値で入力してください
+      not_an_integer: は整数で入力してください
+      odd: は奇数にしてください
+      other_than: は%{count}以外の値にしてください
+      present: は入力しないでください
+      required: を入力してください
+      taken: はすでに存在します
+      too_long: は%{count}文字以内で入力してください
+      too_short: は%{count}文字以上で入力してください
+      wrong_length: は%{count}文字で入力してください
+    template:
+      body: 次の項目を確認してください
+      header:
+        one: "%{model}にエラーが発生しました"
+        other: "%{model}に%{count}個のエラーが発生しました"
+  helpers:
+    select:
+      prompt: 選択してください
+    submit:
+      create: 登録する
+      submit: 保存する
+      update: 更新する
+  time:
+    am: 午前
+    formats:
+      default: "%Y年%m月%d日(%a) %H時%M分%S秒 %z"
+      long: "%Y/%m/%d %H:%M"
+      short: "%m/%d %H:%M"
+      time: "%H：%M"
+    pm: 午後

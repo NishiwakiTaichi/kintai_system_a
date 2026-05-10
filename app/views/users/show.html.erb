@@ -1,0 +1,116 @@
+<div class="mt-3">
+  <table class="table table-bordered">
+    <tr>
+      <td>
+        <%= link_to "←", user_path(@user, date: @first_day.prev_month),
+                    class: "btn btn-sm btn-outline-secondary" %>
+        <%= l(@first_day, format: :middle) %> 時間管理表
+        <%= link_to "→", user_path(@user, date: @first_day.next_month),
+                    class: "btn btn-sm btn-outline-secondary" %>
+      </td>
+      <td>指定勤務時間：<%= format_basic_info(@user.work_time) %></td>
+      <td><%= format_basic_info(@user.basic_time) %> 基本時間</td>
+      <td>初日 <%= l(@first_day, format: :short) %></td>
+    </tr>
+    <tr>
+      <td>所属 <%= @user.department.present? ? @user.department : "未所属" %></td>
+      <td>氏名 <%= @user.name %></td>
+      <td>コード <%= @user.employee_code %></td>
+      <td>出勤日数 <%= @worked_sum %>日</td>
+      <td>締め <%= l(@last_day, format: :short) %></td>
+    </tr>
+  </table>
+</div>
+
+<div class="mb-3">
+  <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day), class: "btn btn-outline-secondary btn-sm" %>
+</div>
+
+<div>
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th rowspan="2">日付</th>
+        <th rowspan="2">曜日</th>
+        <th colspan="2">出社</th>
+        <th colspan="2">退社</th>
+        <th rowspan="2">在社時間</th>
+        <th rowspan="2">備考</th>
+      </tr>
+      <tr>
+        <th>時</th>
+        <th>分</th>
+        <th>時</th>
+        <th>分</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @attendances.each do |day| %>
+        <% floored_started  = floor_to_15min(day.started_at) %>
+        <% floored_finished = floor_to_15min(day.finished_at) %>
+        <tr>
+          <td><%= l(day.worked_on, format: :short) %></td>
+          <td class="<%= day_color_class(day.worked_on) %>">
+            <%= %w[日 月 火 水 木 金 土][day.worked_on.wday] %>
+          </td>
+
+          <%# 出社列（時・分） %>
+          <% if day.worked_on == Date.current && day.started_at.nil? %>
+            <td colspan="2">
+              <%= button_to "出社", user_attendance_path(@user, day),
+                            method: :patch, class: "btn btn-primary btn-sm" %>
+            </td>
+          <% else %>
+            <td><%= floored_started&.hour %></td>
+            <td><%= floored_started&.strftime('%M') %></td>
+          <% end %>
+
+          <%# 退社列（時・分） %>
+          <% if day.started_at.present? && day.finished_at.nil? %>
+            <td colspan="2">
+              <%= button_to "退社", user_attendance_path(@user, day),
+                            method: :patch, class: "btn btn-warning btn-sm" %>
+            </td>
+          <% else %>
+            <% finished_hour = floored_finished.present? && floored_finished.to_date > day.worked_on ?
+                               floored_finished.hour + 24 : floored_finished&.hour %>
+            <td><%= finished_hour %></td>
+            <td><%= floored_finished&.strftime('%M') %></td>
+          <% end %>
+
+          <td>
+            <% if floored_started.present? && floored_finished.present? %>
+              <%= working_times(floored_started, floored_finished) %>
+            <% end %>
+          </td>
+          <td><%= day.note %></td>
+        </tr>
+      <% end %>
+    </tbody>
+
+    <tfoot>
+      <tr>
+        <td colspan="2">累計日数</td>
+        <td colspan="4">総合勤務時間</td>
+        <td colspan="2">累計在社時間</td>
+      </tr>
+      <tr>
+        <td colspan="2"><%= @attendances.count %></td>
+        <td colspan="4">
+          <% if @user.work_time.present? %>
+            <%= format_basic_info(@user.work_time).to_f * @worked_sum %>
+          <% end %>
+        </td>
+        <td colspan="2">
+          <% total = @attendances
+                      .select { |d| d.started_at.present? && d.finished_at.present? }
+                      .sum { |d|
+                        working_times(floor_to_15min(d.started_at), floor_to_15min(d.finished_at)).to_f
+                      } %>
+          <%= format("%.2f", total) %>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
