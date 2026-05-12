@@ -10,7 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_11_133802) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_12_192310) do
+  create_table "attendance_change_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "supervisor_id", null: false
+    t.bigint "attendance_id", null: false
+    t.datetime "before_started_at"
+    t.datetime "before_finished_at"
+    t.text "reason"
+    t.string "status", default: "なし"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendance_id"], name: "index_attendance_change_applications_on_attendance_id"
+    t.index ["supervisor_id"], name: "index_attendance_change_applications_on_supervisor_id"
+    t.index ["user_id"], name: "index_attendance_change_applications_on_user_id"
+  end
+
   create_table "attendances", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.date "worked_on"
     t.datetime "started_at"
@@ -20,6 +35,40 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_11_133802) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_attendances_on_user_id"
+  end
+
+  create_table "base_points", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "base_number"
+    t.string "name"
+    t.string "base_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "monthly_approval_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "supervisor_id", null: false
+    t.date "target_month"
+    t.string "status", default: "なし"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["supervisor_id"], name: "index_monthly_approval_applications_on_supervisor_id"
+    t.index ["user_id"], name: "index_monthly_approval_applications_on_user_id"
+  end
+
+  create_table "overtime_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "supervisor_id", null: false
+    t.bigint "attendance_id", null: false
+    t.datetime "scheduled_end_time"
+    t.boolean "next_day", default: false
+    t.text "work_content"
+    t.string "status", default: "なし"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendance_id"], name: "index_overtime_applications_on_attendance_id"
+    t.index ["supervisor_id"], name: "index_overtime_applications_on_supervisor_id"
+    t.index ["user_id"], name: "index_overtime_applications_on_user_id"
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -44,5 +93,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_11_133802) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "attendance_change_applications", "attendances"
+  add_foreign_key "attendance_change_applications", "users"
+  add_foreign_key "attendance_change_applications", "users", column: "supervisor_id"
   add_foreign_key "attendances", "users"
+  add_foreign_key "monthly_approval_applications", "users"
+  add_foreign_key "monthly_approval_applications", "users", column: "supervisor_id"
+  add_foreign_key "overtime_applications", "attendances"
+  add_foreign_key "overtime_applications", "users"
+  add_foreign_key "overtime_applications", "users", column: "supervisor_id"
 end
