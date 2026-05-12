@@ -1,14 +1,52 @@
 # 管理者ユーザーを作成
 admin = User.find_or_initialize_by(email: "admin@example.com")
 admin.assign_attributes(
-  name:       "管理者 太郎",
-  password:   "password",
-  department: "管理部",
-  admin:      true,
-  basic_time: nil,
-  work_time:  nil
+  name:                       "管理者 太郎",
+  password:                   "password",
+  department:                 "管理部",
+  admin:                      true,
+  superior:                   false,
+  employee_number:            "A001",
+  uid:                        "UID-A001",
+  designated_work_start_time: Time.zone.parse("2000-01-01 09:00:00"),
+  designated_work_end_time:   Time.zone.parse("2000-01-01 18:00:00"),
+  basic_time:                 nil,
+  work_time:                  nil
 )
 admin.save!
+
+# 上長ユーザーを作成
+superior1 = User.find_or_initialize_by(email: "superior1@example.com")
+superior1.assign_attributes(
+  name:                       "上長 一郎",
+  password:                   "password",
+  department:                 "開発部",
+  admin:                      false,
+  superior:                   true,
+  employee_number:            "S001",
+  uid:                        "UID-S001",
+  designated_work_start_time: Time.zone.parse("2000-01-01 09:00:00"),
+  designated_work_end_time:   Time.zone.parse("2000-01-01 18:00:00"),
+  basic_time:                 nil,
+  work_time:                  nil
+)
+superior1.save!
+
+superior2 = User.find_or_initialize_by(email: "superior2@example.com")
+superior2.assign_attributes(
+  name:                       "上長 二郎",
+  password:                   "password",
+  department:                 "営業部",
+  admin:                      false,
+  superior:                   true,
+  employee_number:            "S002",
+  uid:                        "UID-S002",
+  designated_work_start_time: Time.zone.parse("2000-01-01 09:00:00"),
+  designated_work_end_time:   Time.zone.parse("2000-01-01 18:00:00"),
+  basic_time:                 nil,
+  work_time:                  nil
+)
+superior2.save!
 
 # 一般ユーザー50名（日本語名）
 users_data = [
@@ -67,12 +105,17 @@ users_data = [
 users_data.each_with_index do |data, i|
   user = User.find_or_initialize_by(email: "user#{i + 1}@example.com")
   user.assign_attributes(
-    name:       data[:name],
-    password:   "password",
-    department: data[:department],
-    admin:      false,
-    basic_time: nil,
-    work_time:  nil
+    name:                       data[:name],
+    password:                   "password",
+    department:                 data[:department],
+    admin:                      false,
+    superior:                   false,
+    employee_number:            "U#{format('%03d', i + 1)}",
+    uid:                        "UID-#{format('%03d', i + 1)}",
+    designated_work_start_time: Time.zone.parse("2000-01-01 09:00:00"),
+    designated_work_end_time:   Time.zone.parse("2000-01-01 18:00:00"),
+    basic_time:                 nil,
+    work_time:                  nil
   )
   user.save!
 end

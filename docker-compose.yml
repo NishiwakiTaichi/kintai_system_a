@@ -1,9 +1,9 @@
-name: kintai_system_b
+name: kintai_system_a
 
 services:
   db:
     image: mysql:8.0
-    container_name: kintai_system_b_db
+    container_name: kintai_system_a_db
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_CHARSET: utf8mb4

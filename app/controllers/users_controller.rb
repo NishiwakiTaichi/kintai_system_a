@@ -90,6 +90,6 @@ class UsersController < ApplicationController
   end
 
   def basic_info_params
-    params.require(:user).permit(:employee_code, :basic_time, :work_time)
+    params.require(:user).permit(:employee_number, :basic_time, :work_time)
   end
 end
