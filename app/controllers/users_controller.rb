@@ -47,7 +47,14 @@ class UsersController < ApplicationController
   end
 
   def update_basic_info
-    if @user.update(basic_info_params)
+    # パスワードが空欄なら変更しない
+    result = if params[:user][:password].blank?
+      @user.update_without_password(basic_info_params_without_password)
+    else
+      @user.update(basic_info_params)
+    end
+
+    if result
       redirect_to users_path, notice: "#{@user.name}の基本情報を更新しました。"
     else
       render :edit_basic_info, status: :unprocessable_entity
@@ -90,6 +97,17 @@ class UsersController < ApplicationController
   end
 
   def basic_info_params
-    params.require(:user).permit(:employee_number, :basic_time, :work_time)
+    params.require(:user).permit(
+      :name, :email, :affiliation, :employee_number, :uid,
+      :password, :password_confirmation,
+      :basic_time, :designated_work_start_time, :designated_work_end_time
+    )
+  end
+
+  def basic_info_params_without_password
+    params.require(:user).permit(
+      :name, :email, :affiliation, :employee_number, :uid,
+      :basic_time, :designated_work_start_time, :designated_work_end_time
+    )
   end
 end
