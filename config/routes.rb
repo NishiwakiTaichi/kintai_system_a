@@ -8,6 +8,9 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   resources :users, only: [:index, :show, :edit, :update, :destroy] do
+    collection do
+      post :import
+    end
     member do
       get  :edit_basic_info
       patch :update_basic_info

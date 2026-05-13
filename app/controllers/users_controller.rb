@@ -1,11 +1,16 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info]
+  before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info, :import]
   before_action :set_user, only: [
     :show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info
   ]
   before_action :admin_or_correct_user, only: [:show, :edit, :update]
   before_action :set_one_month, only: [:show, :edit, :update]
+
+  def import
+    User.import(params[:csv_file])
+    redirect_to users_path, notice: "ユーザーをインポートしました。"
+  end
 
   def index
     @users = if params[:name].present?
