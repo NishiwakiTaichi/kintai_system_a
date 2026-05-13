@@ -1,0 +1,20 @@
+<div class="container mt-4">
+  <h2 class="mb-4">出勤社員一覧</h2>
+
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>社員番号</th>
+        <th>名前</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @attendances.each do |attendance| %>
+        <tr>
+          <td><%= attendance.user.employee_number %></td>
+          <td><%= attendance.user.name %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

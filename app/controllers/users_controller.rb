@@ -1,11 +1,21 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info, :import]
+  before_action :admin_user, only: [
+    :index, :destroy, :edit_basic_info, :update_basic_info, :import, :user_attendance_index
+  ]
   before_action :set_user, only: [
     :show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info
   ]
   before_action :admin_or_correct_user, only: [:show, :edit, :update]
   before_action :set_one_month, only: [:show, :edit, :update]
+
+  def user_attendance_index
+    # 今日・出社済み・退社前 の勤怠レコードを持つユーザーを取得
+    @attendances = Attendance.where(worked_on: Date.today)
+                             .where.not(started_at: nil)
+                             .where(finished_at: nil)
+                             .includes(:user)
+  end
 
   def import
     User.import(params[:csv_file])

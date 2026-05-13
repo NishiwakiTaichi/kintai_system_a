@@ -17,5 +17,6 @@ Rails.application.routes.draw do
     end
     resources :attendances, only: [:update]
   end
+  get 'user_attendance_index', to: 'users#user_attendance_index'
   root to: "home#index"
 end
