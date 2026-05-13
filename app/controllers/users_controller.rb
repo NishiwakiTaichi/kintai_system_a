@@ -1,11 +1,26 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info]
+  before_action :admin_user, only: [
+    :index, :destroy, :edit_basic_info, :update_basic_info, :import, :user_attendance_index
+  ]
   before_action :set_user, only: [
     :show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info
   ]
   before_action :admin_or_correct_user, only: [:show, :edit, :update]
   before_action :set_one_month, only: [:show, :edit, :update]
+
+  def user_attendance_index
+    # 今日・出社済み・退社前 の勤怠レコードを持つユーザーを取得
+    @attendances = Attendance.where(worked_on: Date.today)
+                             .where.not(started_at: nil)
+                             .where(finished_at: nil)
+                             .includes(:user)
+  end
+
+  def import
+    User.import(params[:csv_file])
+    redirect_to users_path, notice: "ユーザーをインポートしました。"
+  end
 
   def index
     @users = if params[:name].present?
@@ -47,7 +62,14 @@ class UsersController < ApplicationController
   end
 
   def update_basic_info
-    if @user.update(basic_info_params)
+    # パスワードが空欄なら変更しない
+    result = if params[:user][:password].blank?
+      @user.update_without_password(basic_info_params_without_password)
+    else
+      @user.update(basic_info_params)
+    end
+
+    if result
       redirect_to users_path, notice: "#{@user.name}の基本情報を更新しました。"
     else
       render :edit_basic_info, status: :unprocessable_entity
@@ -90,6 +112,17 @@ class UsersController < ApplicationController
   end
 
   def basic_info_params
-    params.require(:user).permit(:employee_number, :basic_time, :work_time)
+    params.require(:user).permit(
+      :name, :email, :affiliation, :employee_number, :uid,
+      :password, :password_confirmation,
+      :basic_time, :designated_work_start_time, :designated_work_end_time
+    )
+  end
+
+  def basic_info_params_without_password
+    params.require(:user).permit(
+      :name, :email, :affiliation, :employee_number, :uid,
+      :basic_time, :designated_work_start_time, :designated_work_end_time
+    )
   end
 end

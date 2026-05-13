@@ -8,11 +8,16 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   resources :users, only: [:index, :show, :edit, :update, :destroy] do
+    collection do
+      post :import
+    end
     member do
       get  :edit_basic_info
       patch :update_basic_info
     end
     resources :attendances, only: [:update]
   end
+  resources :base_points, only: [:index, :new, :create, :edit, :update, :destroy]
+  get 'user_attendance_index', to: 'users#user_attendance_index'
   root to: "home#index"
 end

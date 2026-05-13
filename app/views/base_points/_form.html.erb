@@ -1,0 +1,18 @@
+<%= form_with model: base_point, local: true do |f| %>
+  <div class="mb-3">
+    <%= f.label :base_number, "拠点番号", class: "form-label" %>
+    <%= f.text_field :base_number, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :name, "拠点名", class: "form-label" %>
+    <%= f.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :base_type, "勤怠種類", class: "form-label" %>
+    <%= f.select :base_type, ["出勤", "退勤"], {}, class: "form-select" %>
+  </div>
+
+  <%= f.submit "保存", class: "btn btn-primary w-100" %>
+<% end %>

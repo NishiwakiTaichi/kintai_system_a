@@ -22,6 +22,8 @@
             <%= link_to "トップへ", root_path, class: "nav-link text-white" %>
             <% if admin_user? %>
               <%= link_to "ユーザー一覧", users_path, class: "nav-link text-white" %>
+              <%= link_to "出勤社員一覧", user_attendance_index_path, class: "nav-link text-white" %>
+              <%= link_to "拠点情報の修正", base_points_path, class: "nav-link text-white" %>
               <%= link_to "基本情報の修正", edit_basic_info_user_path(current_user),
                           class: "nav-link text-white" %>
             <% end %>
