@@ -39,6 +39,15 @@ class UsersController < ApplicationController
       @attendance_change_count = AttendanceChangeApplication.where(supervisor_id: current_user.id, status: '申請中').count
       @monthly_approval_count  = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: '申請中').count
     end
+
+    # 所属長承認申請フォーム用：自身以外の上長ユーザーリスト
+    @supervisors = User.where(superior: true).where.not(id: current_user.id)
+
+    # 現在表示中の月の所属長承認申請状態
+    @monthly_approval = MonthlyApprovalApplication.find_by(
+      user_id: @user.id,
+      target_month: @first_day
+    )
   end
 
   def edit

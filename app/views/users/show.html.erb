@@ -166,3 +166,27 @@
     </tfoot>
   </table>
 </div>
+
+<%# 所属長承認申請フォーム %>
+<div class="mt-3">
+  <%= form_with url: monthly_approval_applications_path, method: :post do |f| %>
+    <%= f.hidden_field :user_id, value: @user.id %>
+    <%= f.hidden_field :target_month, value: @first_day %>
+    <table class="table table-bordered text-center" style="width: auto;">
+      <tr>
+        <td class="align-middle">
+          所属長承認　<%= @monthly_approval&.status || 'なし' %>
+        </td>
+        <td>
+          <%= f.select :supervisor_id,
+                       options_from_collection_for_select(@supervisors, :id, :name),
+                       { include_blank: true },
+                       { class: 'form-select form-select-sm' } %>
+        </td>
+        <td>
+          <%= f.submit '申請', class: 'btn btn-app btn-sm' %>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+</div>
