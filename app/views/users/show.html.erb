@@ -27,6 +27,30 @@
   </table>
 </div>
 
+<%# 通知ボタン3種（上長ユーザーのみ表示・勤怠を編集の上） %>
+<% if current_user.superior? %>
+  <div class="mb-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary d-block">
+      【所属長承認申請のお知らせ】
+      <% if @monthly_approval_count > 0 %>
+        <span class="text-danger"><%= @monthly_approval_count %>件の通知があります</span>
+      <% end %>
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary d-block">
+      【勤怠変更申請のお知らせ】
+      <% if @attendance_change_count > 0 %>
+        <span class="text-danger"><%= @attendance_change_count %>件の通知があります</span>
+      <% end %>
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary d-block">
+      【残業申請のお知らせ】
+      <% if @overtime_count > 0 %>
+        <span class="text-danger"><%= @overtime_count %>件の通知があります</span>
+      <% end %>
+    </button>
+  </div>
+<% end %>
+
 <%# 勤怠操作ボタン %>
 <div class="mb-3">
   <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day), class: "btn btn-outline-secondary btn-sm" %>

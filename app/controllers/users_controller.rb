@@ -32,6 +32,13 @@ class UsersController < ApplicationController
 
   def show
     @worked_sum = @attendances.where.not(started_at: nil).count
+
+    # 上長ユーザーの場合のみ、自分への未処理申請件数を取得
+    if current_user.superior?
+      @overtime_count          = OvertimeApplication.where(supervisor_id: current_user.id, status: '申請中').count
+      @attendance_change_count = AttendanceChangeApplication.where(supervisor_id: current_user.id, status: '申請中').count
+      @monthly_approval_count  = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: '申請中').count
+    end
   end
 
   def edit
