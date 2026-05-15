@@ -53,7 +53,13 @@
 
 <%# 勤怠操作ボタン %>
 <div class="mb-3">
-  <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day), class: "btn btn-outline-secondary btn-sm" %>
+  <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day),
+              class: "btn btn-outline-secondary btn-sm" %>
+  <%= link_to "CSV出力", "#",
+              class: "btn btn-app btn-sm" %>
+  <br>
+  <%= link_to "勤怠修正ログ（承認済）", "#",
+              class: "btn btn-app btn-sm" %>
 </div>
 
 <%# 勤怠テーブル %>
