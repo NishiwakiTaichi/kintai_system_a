@@ -27,6 +27,11 @@ class OvertimeApplicationsController < ApplicationController
     redirect_to user_path(ot[:user_id])
   end
 
+  def bulk_update
+    # Phase4 ステップ4で実装
+    redirect_to user_path(current_user)
+  end
+
   private
 
   def overtime_application_params

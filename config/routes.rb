@@ -19,7 +19,11 @@ Rails.application.routes.draw do
   end
   resources :base_points, only: [:index, :new, :create, :edit, :update, :destroy]
   resources :monthly_approval_applications, only: [:create]
-  resources :overtime_applications, only: [:create]
+  resources :overtime_applications, only: [:create] do
+    collection do
+      patch :bulk_update
+    end
+  end
   get 'user_attendance_index', to: 'users#user_attendance_index'
   root to: "home#index"
 end
