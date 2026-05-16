@@ -95,8 +95,14 @@
         <% floored_started  = floor_to_15min(day.started_at) %>
         <% floored_finished = floor_to_15min(day.finished_at) %>
         <tr>
-          <%# 残業申請列（Phase4で実装） %>
-          <td></td>
+          <%# 残業申請ボタン %>
+          <td>
+            <button type="button" class="btn btn-app btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#overtimeModal-<%= day.id %>">
+              残業申請
+            </button>
+          </td>
 
           <td><%= l(day.worked_on, format: :short) %></td>
           <td class="<%= day_color_class(day.worked_on) %>">
@@ -172,6 +178,78 @@
     </tfoot>
   </table>
 </div>
+
+<%# 残業申請モーダル（各行に対応） %>
+<% @attendances.each do |day| %>
+  <div class="modal fade" id="overtimeModal-<%= day.id %>" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">【残業申請】</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <%= form_with url: overtime_applications_path, method: :post do |f| %>
+          <%= f.hidden_field :user_id, value: @user.id %>
+          <%= f.hidden_field :attendance_id, value: day.id %>
+
+          <div class="modal-body">
+            <table class="table table-bordered text-center">
+              <thead>
+                <tr>
+                  <th>日付</th>
+                  <th>曜日</th>
+                  <th>終了予定時間</th>
+                  <th>翌日</th>
+                  <th>業務処理内容</th>
+                  <th>指示者確認㊞</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="align-middle"><%= l(day.worked_on, format: :short) %></td>
+                  <td class="align-middle <%= day_color_class(day.worked_on) %>">
+                    <%= %w[日 月 火 水 木 金 土][day.worked_on.wday] %>
+                  </td>
+                  <td class="align-middle">
+                    <%= f.select :scheduled_end_time_hour,
+                                 (0..30).map { |h| [h, h] },
+                                 { include_blank: "時" },
+                                 { class: "form-select form-select-sm d-inline-block",
+                                   style: "width: auto" } %>
+                    :
+                    <%= f.select :scheduled_end_time_minute,
+                                 %w[00 15 30 45].map { |m| [m, m] },
+                                 { include_blank: "分" },
+                                 { class: "form-select form-select-sm d-inline-block",
+                                   style: "width: auto" } %>
+                  </td>
+                  <td class="align-middle">
+                    <%= f.check_box :next_day %>
+                  </td>
+                  <td>
+                    <%= f.text_area :work_content, class: "form-control", rows: 2 %>
+                  </td>
+                  <td>
+                    <%= f.select :supervisor_id,
+                                 options_from_collection_for_select(@supervisors, :id, :name),
+                                 { include_blank: true },
+                                 { class: "form-select form-select-sm" } %>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="modal-footer">
+            <%= f.submit "変更を送信する", class: "btn btn-app w-100" %>
+          </div>
+        <% end %>
+
+      </div>
+    </div>
+  </div>
+<% end %>
 
 <%# 所属長承認申請フォーム %>
 <div class="mt-3">
