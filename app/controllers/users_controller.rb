@@ -43,6 +43,11 @@ class UsersController < ApplicationController
     # 所属長承認申請フォーム用：自身以外の上長ユーザーリスト
     @supervisors = User.where(superior: true).where.not(id: current_user.id)
 
+    # 残業申請データを attendance_id をキーにしたハッシュで取得
+    @overtime_applications = OvertimeApplication
+      .where(attendance_id: @attendances.map(&:id))
+      .index_by(&:attendance_id)
+
     # 現在表示中の月の所属長承認申請状態
     @monthly_approval = MonthlyApprovalApplication.find_by(
       user_id: @user.id,

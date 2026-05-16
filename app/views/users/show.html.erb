@@ -143,12 +143,40 @@
           <%# 備考 %>
           <td><%= day.note %></td>
 
-          <%# 終了予定時間・時間外時間・業務処理内容・指示者確認㊞（Phase4で実装） %>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
+          <%# 残業申請データを取得 %>
+          <% ot = @overtime_applications[day.id] %>
+
+          <%# 終了予定時間（時・分） %>
+          <% if ot&.scheduled_end_time %>
+            <% ot_hour = ot.next_day ? ot.scheduled_end_time.hour + 24
+                                     : ot.scheduled_end_time.hour %>
+            <td><%= ot_hour %></td>
+            <td><%= ot.scheduled_end_time.strftime('%M') %></td>
+          <% else %>
+            <td></td><td></td>
+          <% end %>
+
+          <%# 時間外時間 %>
+          <td>
+            <% if ot&.scheduled_end_time && @user.designated_work_end_time %>
+              <% overtime_minutes = (ot.scheduled_end_time - @user.designated_work_end_time.change(
+                   year: day.worked_on.year, month: day.worked_on.month, day: day.worked_on.day
+                 )) / 60 %>
+              <% if overtime_minutes > 0 %>
+                <%= format("%d:%02d", overtime_minutes / 60, overtime_minutes % 60) %>
+              <% end %>
+            <% end %>
+          </td>
+
+          <%# 業務処理内容 %>
+          <td><%= ot&.work_content %></td>
+
+          <%# 指示者確認㊞ %>
+          <td>
+            <% if ot %>
+              <%= ot.supervisor.name %><br>残業申請中
+            <% end %>
+          </td>
         </tr>
       <% end %>
     </tbody>
