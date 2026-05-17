@@ -28,7 +28,13 @@ class OvertimeApplicationsController < ApplicationController
   end
 
   def bulk_update
-    # Phase4 ステップ4で実装
+    # 変更チェックボックスが入っている行のみステータスを更新する
+    params[:overtime_applications]&.each do |id, attrs|
+      next unless attrs[:change] == "1"
+
+      OvertimeApplication.find(id).update(status: attrs[:status])
+    end
+
     redirect_to user_path(current_user)
   end
 
