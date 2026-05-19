@@ -32,7 +32,12 @@ class OvertimeApplicationsController < ApplicationController
     params[:overtime_applications]&.each do |id, attrs|
       next unless attrs[:change] == "1"
 
-      OvertimeApplication.find(id).update(status: attrs[:status])
+      ot = OvertimeApplication.find(id)
+      # 申請中 → 承認 または 申請中 → 否認 のみ変更可能
+      next unless ot.status == '申請中'
+      next unless %w[承認 否認].include?(attrs[:status])
+
+      ot.update(status: attrs[:status])
     end
 
     redirect_to user_path(current_user)
