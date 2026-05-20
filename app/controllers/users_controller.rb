@@ -51,6 +51,11 @@ class UsersController < ApplicationController
       .where(attendance_id: @attendances.map(&:id))
       .index_by(&:attendance_id)
 
+    # 勤怠変更申請データを attendance_id をキーにしたハッシュで取得
+    @change_applications = AttendanceChangeApplication
+      .where(attendance_id: @attendances.map(&:id))
+      .index_by(&:attendance_id)
+
     # 現在表示中の月の所属長承認申請状態
     @monthly_approval = MonthlyApprovalApplication.find_by(
       user_id: @user.id,
