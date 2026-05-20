@@ -172,8 +172,12 @@
           <%# 業務処理内容 %>
           <td><%= ot&.work_content %></td>
 
-          <%# 指示者確認㊞ %>
+          <%# 指示者確認㊞（勤怠変更申請 + 残業申請） %>
+          <% ca = @change_applications[day.id] %>
           <td>
+            <% if ca %>
+              <%= ca.supervisor.name %><br><%= ca.status %>
+            <% end %>
             <% if ot %>
               <%= ot.supervisor.name %><br><%= ot.status %>
             <% end %>
@@ -213,88 +217,98 @@
   <div class="modal fade" id="overtimeNoticeModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
-        <div class="modal-header justify-content-center position-relative">
-          <h5 class="modal-title">【残業申請のお知らせ】</h5>
-          <button type="button" class="btn-close position-absolute end-0 me-3"
-                  data-bs-dismiss="modal"></button>
-        </div>
+        <%= form_with url: bulk_update_overtime_applications_path, method: :patch, data: { turbo: false } do |f| %>
+          <%# 申請者ごとにグループ化 %>
+          <% grouped = @overtime_requests.group_by(&:user) %>
 
-        <%= form_with url: bulk_update_overtime_applications_path, method: :patch do |f| %>
-          <div class="modal-body">
-            <table class="table table-bordered table-striped text-center">
-              <thead>
-                <tr>
-                  <th>変更</th>
-                  <th>日付</th>
-                  <th>曜日</th>
-                  <th>終了予定時間</th>
-                  <th>指定勤務終了時間</th>
-                  <th>時間外時間</th>
-                  <th>業務処理内容</th>
-                  <th>指示者確認㊞</th>
-                  <th>勤怠を確認する</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @overtime_requests.each do |ot| %>
-                  <% worked_on = ot.attendance.worked_on %>
-                  <% ot_hour = ot.next_day ? ot.scheduled_end_time.hour + 24
-                                           : ot.scheduled_end_time.hour %>
-                  <% designated_end = ot.user.designated_work_end_time&.change(
-                       year: worked_on.year, month: worked_on.month, day: worked_on.day
-                     ) %>
-                  <% overtime_minutes = designated_end ? (ot.scheduled_end_time - designated_end) / 60 : nil %>
-                  <tr>
-                    <%# 変更チェックボックス %>
-                    <td class="align-middle">
-                      <input type="checkbox"
-                             name="overtime_applications[<%= ot.id %>][change]"
-                             value="1">
-                    </td>
-                    <%# 日付 %>
-                    <td class="align-middle"><%= l(worked_on, format: :short) %></td>
-                    <%# 曜日 %>
-                    <td class="align-middle <%= day_color_class(worked_on) %>">
-                      <%= %w[日 月 火 水 木 金 土][worked_on.wday] %>
-                    </td>
-                    <%# 終了予定時間 %>
-                    <td class="align-middle">
-                      <%= ot_hour %>:<%= ot.scheduled_end_time.strftime('%M') %>
-                    </td>
-                    <%# 指定勤務終了時間 %>
-                    <td class="align-middle">
-                      <%= format_basic_info(ot.user.designated_work_end_time) %>
-                    </td>
-                    <%# 時間外時間 %>
-                    <td class="align-middle">
-                      <% if overtime_minutes&.positive? %>
-                        <%= format("%d:%02d", overtime_minutes / 60, overtime_minutes % 60) %>
-                      <% end %>
-                    </td>
-                    <%# 業務処理内容 %>
-                    <td><%= ot.work_content %></td>
-                    <%# 指示者確認㊞ %>
-                    <td>
-                      <select name="overtime_applications[<%= ot.id %>][status]"
-                              class="form-select form-select-sm">
-                        <% %w[なし 申請中 承認 否認].each do |s| %>
-                          <option value="<%= s %>" <%= 'selected' if ot.status == s %>><%= s %></option>
-                        <% end %>
-                      </select>
-                    </td>
-                    <%# 勤怠を確認するボタン %>
-                    <td class="align-middle">
-                      <%= link_to "勤怠を確認する",
-                                  user_path(ot.user, date: worked_on.beginning_of_month),
-                                  class: "btn btn-app btn-sm" %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+          <div class="modal-header justify-content-center position-relative border-0">
+            <%# タイトルは最初の申請者名を表示 %>
+            <h5 class="modal-title">【 <%= grouped.keys.first&.name %> からの残業申請】</h5>
+            <button type="button" class="btn-close position-absolute end-0 me-3"
+                    data-bs-dismiss="modal"></button>
           </div>
 
-          <div class="modal-footer">
+          <div class="modal-body pt-0">
+            <% grouped.each_with_index do |(applicant, requests), index| %>
+              <%# 2人目以降の申請者は見出しをテーブルの間に表示 %>
+              <% if index > 0 %>
+                <h5 class="fw-bold mb-3 text-center">【 <%= applicant.name %> からの残業申請】</h5>
+              <% end %>
+              <table class="table table-bordered table-striped text-center">
+                <thead>
+                  <tr>
+                    <th>日付</th>
+                    <th>曜日</th>
+                    <th>終了予定時間</th>
+                    <th>指定勤務終了時間</th>
+                    <th>時間外時間</th>
+                    <th>業務処理内容</th>
+                    <th>指示者確認㊞</th>
+                    <th>変更</th>
+                    <th>勤怠を確認する</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% requests.each do |ot| %>
+                    <% worked_on = ot.attendance.worked_on %>
+                    <% ot_hour = ot.next_day ? ot.scheduled_end_time.hour + 24
+                                             : ot.scheduled_end_time.hour %>
+                    <% designated_end = ot.user.designated_work_end_time&.change(
+                         year: worked_on.year, month: worked_on.month, day: worked_on.day
+                       ) %>
+                    <% overtime_minutes = designated_end ? (ot.scheduled_end_time - designated_end) / 60 : nil %>
+                    <tr>
+                      <%# 日付 %>
+                      <td class="align-middle"><%= l(worked_on, format: :short) %></td>
+                      <%# 曜日 %>
+                      <td class="align-middle <%= day_color_class(worked_on) %>">
+                        <%= %w[日 月 火 水 木 金 土][worked_on.wday] %>
+                      </td>
+                      <%# 終了予定時間 %>
+                      <td class="align-middle">
+                        <%= ot_hour %>:<%= ot.scheduled_end_time.strftime('%M') %>
+                      </td>
+                      <%# 指定勤務終了時間 %>
+                      <td class="align-middle">
+                        <%= format_basic_info(ot.user.designated_work_end_time) %>
+                      </td>
+                      <%# 時間外時間 %>
+                      <td class="align-middle">
+                        <% if overtime_minutes&.positive? %>
+                          <%= format("%d:%02d", overtime_minutes / 60, overtime_minutes % 60) %>
+                        <% end %>
+                      </td>
+                      <%# 業務処理内容 %>
+                      <td><%= ot.work_content %></td>
+                      <%# 指示者確認㊞ %>
+                      <td>
+                        <select name="overtime_applications[<%= ot.id %>][status]"
+                                class="form-select form-select-sm">
+                          <% %w[なし 申請中 承認 否認].each do |s| %>
+                            <option value="<%= s %>" <%= 'selected' if ot.status == s %>><%= s %></option>
+                          <% end %>
+                        </select>
+                      </td>
+                      <%# 変更チェックボックス %>
+                      <td class="align-middle">
+                        <input type="checkbox"
+                               name="overtime_applications[<%= ot.id %>][change]"
+                               value="1">
+                      </td>
+                      <%# 勤怠を確認するボタン %>
+                      <td class="align-middle">
+                        <%= link_to "確認",
+                                    user_path(ot.user, date: worked_on.beginning_of_month),
+                                    class: "btn btn-app btn-sm" %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% end %>
+          </div>
+
+          <div class="modal-footer border-0">
             <%= f.submit "変更を送信する", class: "btn btn-app w-100" %>
           </div>
         <% end %>
@@ -315,7 +329,7 @@
                   data-bs-dismiss="modal"></button>
         </div>
 
-        <%= form_with url: overtime_applications_path, method: :post do |f| %>
+        <%= form_with url: overtime_applications_path, method: :post, data: { turbo: false } do |f| %>
           <%= f.hidden_field :user_id, value: @user.id %>
           <%= f.hidden_field :attendance_id, value: day.id %>
 

@@ -46,7 +46,7 @@ class OvertimeApplicationsController < ApplicationController
   private
 
   def overtime_application_params
-    params.require(:overtime_application).permit(
+    params.permit(
       :user_id, :attendance_id, :supervisor_id,
       :scheduled_end_time_hour, :scheduled_end_time_minute,
       :next_day, :work_content
