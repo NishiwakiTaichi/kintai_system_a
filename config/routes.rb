@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
-  resources :users, only: [:index, :show, :edit, :update, :destroy] do
+  resources :users, only: %i[index show edit update destroy] do
     collection do
       post :import
     end
@@ -17,13 +17,13 @@ Rails.application.routes.draw do
     end
     resources :attendances, only: [:update]
   end
-  resources :base_points, only: [:index, :new, :create, :edit, :update, :destroy]
+  resources :base_points, only: %i[index new create edit update destroy]
   resources :monthly_approval_applications, only: [:create]
   resources :overtime_applications, only: [:create] do
     collection do
       patch :bulk_update
     end
   end
-  get 'user_attendance_index', to: 'users#user_attendance_index'
+  get "user_attendance_index", to: "users#user_attendance_index"
   root to: "home#index"
 end

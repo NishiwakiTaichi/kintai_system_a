@@ -16,10 +16,10 @@ class ApplicationController < ActionController::Base
   # 管理者または本人のみアクセスを許可する
   def admin_or_correct_user
     @user = User.find(params[:user_id]) if @user.blank?
-    unless current_user == @user || current_user.admin? || current_user.superior?
-      flash[:danger] = "編集権限がありません。"
-      redirect_to root_url
-    end
+    return if current_user == @user || current_user.admin? || current_user.superior?
+
+    flash[:danger] = "編集権限がありません。"
+    redirect_to root_url
   end
 
   # 表示対象月の1ヶ月分の勤怠データを準備する
@@ -47,7 +47,7 @@ class ApplicationController < ActionController::Base
   end
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :department])
-    devise_parameter_sanitizer.permit(:account_update, keys: [:name, :department])
+    devise_parameter_sanitizer.permit(:sign_up, keys: %i[name department])
+    devise_parameter_sanitizer.permit(:account_update, keys: %i[name department])
   end
 end

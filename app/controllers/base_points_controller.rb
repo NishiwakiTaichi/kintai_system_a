@@ -1,7 +1,7 @@
 class BasePointsController < ApplicationController
   before_action :authenticate_user!
   before_action :admin_user
-  before_action :set_base_point, only: [:edit, :update, :destroy]
+  before_action :set_base_point, only: %i[edit update destroy]
 
   def index
     @base_points = BasePoint.all
@@ -11,23 +11,22 @@ class BasePointsController < ApplicationController
     @base_point = BasePoint.new
   end
 
+  def edit; end
+
   def create
     @base_point = BasePoint.new(base_point_params)
     if @base_point.save
       redirect_to base_points_path, notice: "拠点情報を追加しました。"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
-  end
-
-  def edit
   end
 
   def update
     if @base_point.update(base_point_params)
       redirect_to base_points_path, notice: "拠点情報を更新しました。"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

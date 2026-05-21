@@ -1,5 +1,4 @@
 class Attendance < ApplicationRecord
-
   belongs_to :user
 
   validates :worked_on, presence: true
@@ -16,14 +15,14 @@ class Attendance < ApplicationRecord
   end
 
   def started_at_than_finished_at_fast_if_invalid
-    if started_at.present? && finished_at.present?
-      errors.add(:started_at, "より早い退社時間は無効です") if started_at > finished_at
-    end
+    return unless started_at.present? && finished_at.present?
+
+    errors.add(:started_at, "より早い退社時間は無効です") if started_at > finished_at
   end
 
   def started_at_and_finished_at_pair
-    if started_at.present? && finished_at.blank?
-      errors.add(:finished_at, "が必要です")
-    end
+    return unless started_at.present? && finished_at.blank?
+
+    errors.add(:finished_at, "が必要です")
   end
 end

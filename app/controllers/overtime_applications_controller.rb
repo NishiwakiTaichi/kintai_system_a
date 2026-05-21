@@ -15,13 +15,13 @@ class OvertimeApplicationsController < ApplicationController
                          ot[:scheduled_end_time_minute].to_i.minutes
 
     OvertimeApplication.create!(
-      user_id:            ot[:user_id],
-      attendance_id:      ot[:attendance_id],
-      supervisor_id:      ot[:supervisor_id],
+      user_id: ot[:user_id],
+      attendance_id: ot[:attendance_id],
+      supervisor_id: ot[:supervisor_id],
       scheduled_end_time: scheduled_end_time,
-      next_day:           next_day,
-      work_content:       ot[:work_content],
-      status:             '申請中'
+      next_day: next_day,
+      work_content: ot[:work_content],
+      status: "申請中"
     )
 
     redirect_to user_path(ot[:user_id])
@@ -34,7 +34,7 @@ class OvertimeApplicationsController < ApplicationController
 
       ot = OvertimeApplication.find(id)
       # 申請中 → 承認 または 申請中 → 否認 のみ変更可能
-      next unless ot.status == '申請中'
+      next unless ot.status == "申請中"
       next unless %w[承認 否認].include?(attrs[:status])
 
       ot.update(status: attrs[:status])

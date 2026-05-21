@@ -2,7 +2,7 @@ class AttendancesController < ApplicationController
   before_action :authenticate_user!
   before_action :admin_or_correct_user
 
-  UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。"
+  UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。".freeze
 
   def update
     @user = User.find(params[:user_id])

@@ -1,17 +1,17 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :admin_user, only: [
-    :index, :destroy, :edit_basic_info, :update_basic_info, :import, :user_attendance_index
+  before_action :admin_user, only: %i[
+    index destroy edit_basic_info update_basic_info import user_attendance_index
   ]
-  before_action :set_user, only: [
-    :show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info
+  before_action :set_user, only: %i[
+    show edit update destroy edit_basic_info update_basic_info
   ]
-  before_action :admin_or_correct_user, only: [:show, :edit, :update]
-  before_action :set_one_month, only: [:show, :edit, :update]
+  before_action :admin_or_correct_user, only: %i[show edit update]
+  before_action :set_one_month, only: %i[show edit update]
 
   def user_attendance_index
     # 今日・出社済み・退社前 の勤怠レコードを持つユーザーを取得
-    @attendances = Attendance.where(worked_on: Date.today)
+    @attendances = Attendance.where(worked_on: Time.zone.today)
                              .where.not(started_at: nil)
                              .where(finished_at: nil)
                              .includes(:user)
@@ -24,10 +24,10 @@ class UsersController < ApplicationController
 
   def index
     @users = if params[:name].present?
-      User.where("name LIKE ?", "%#{params[:name]}%").paginate(page: params[:page], per_page: 20)
-    else
-      User.paginate(page: params[:page], per_page: 20)
-    end
+               User.where("name LIKE ?", "%#{params[:name]}%").paginate(page: params[:page], per_page: 20)
+             else
+               User.paginate(page: params[:page], per_page: 20)
+             end
   end
 
   def show
@@ -36,11 +36,11 @@ class UsersController < ApplicationController
     # 上長ユーザーの場合のみ、自分への申請データと件数を取得
     if current_user.superior?
       @overtime_requests       = OvertimeApplication
-                                   .where(supervisor_id: current_user.id, status: '申請中')
-                                   .includes(:user, :attendance)
+                                 .where(supervisor_id: current_user.id, status: "申請中")
+                                 .includes(:user, :attendance)
       @overtime_count          = @overtime_requests.count
-      @attendance_change_count = AttendanceChangeApplication.where(supervisor_id: current_user.id, status: '申請中').count
-      @monthly_approval_count  = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: '申請中').count
+      @attendance_change_count = AttendanceChangeApplication.where(supervisor_id: current_user.id, status: "申請中").count
+      @monthly_approval_count  = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: "申請中").count
     end
 
     # 所属長承認申請フォーム用：自身以外の上長ユーザーリスト
@@ -48,13 +48,13 @@ class UsersController < ApplicationController
 
     # 残業申請データを attendance_id をキーにしたハッシュで取得
     @overtime_applications = OvertimeApplication
-      .where(attendance_id: @attendances.map(&:id))
-      .index_by(&:attendance_id)
+                             .where(attendance_id: @attendances.map(&:id))
+                             .index_by(&:attendance_id)
 
     # 勤怠変更申請データを attendance_id をキーにしたハッシュで取得
     @change_applications = AttendanceChangeApplication
-      .where(attendance_id: @attendances.map(&:id))
-      .index_by(&:attendance_id)
+                           .where(attendance_id: @attendances.map(&:id))
+                           .index_by(&:attendance_id)
 
     # 現在表示中の月の所属長承認申請状態
     @monthly_approval = MonthlyApprovalApplication.find_by(
@@ -63,8 +63,7 @@ class UsersController < ApplicationController
     )
   end
 
-  def edit
-  end
+  def edit; end
 
   def update
     failed_records = {}
@@ -83,25 +82,24 @@ class UsersController < ApplicationController
       redirect_to user_path(@user, date: @first_day), notice: "勤怠情報を更新しました。"
     else
       @attendances = @attendances.map { |a| failed_records[a.id] || a }
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
-  def edit_basic_info
-  end
+  def edit_basic_info; end
 
   def update_basic_info
     # パスワードが空欄なら変更しない
     result = if params[:user][:password].blank?
-      @user.update_without_password(basic_info_params_without_password)
-    else
-      @user.update(basic_info_params)
-    end
+               @user.update_without_password(basic_info_params_without_password)
+             else
+               @user.update(basic_info_params)
+             end
 
     if result
       redirect_to users_path, notice: "#{@user.name}の基本情報を更新しました。"
     else
-      render :edit_basic_info, status: :unprocessable_entity
+      render :edit_basic_info, status: :unprocessable_content
     end
   end
 
@@ -119,13 +117,11 @@ class UsersController < ApplicationController
   def parse_overnight_time(attrs, worked_on)
     result = { note: attrs[:note] }
 
-    if attrs[:started_at_hour].present? && attrs[:started_at_minute].present?
-      result[:started_at] = worked_on.beginning_of_day +
-                            attrs[:started_at_hour].to_i.hours +
-                            attrs[:started_at_minute].to_i.minutes
-    else
-      result[:started_at] = nil
-    end
+    result[:started_at] = if attrs[:started_at_hour].present? && attrs[:started_at_minute].present?
+                            worked_on.beginning_of_day +
+                              attrs[:started_at_hour].to_i.hours +
+                              attrs[:started_at_minute].to_i.minutes
+                          end
 
     if attrs[:finished_at_hour].present? && attrs[:finished_at_minute].present?
       hours = attrs[:finished_at_hour].to_i

@@ -1,0 +1,65 @@
+plugins:
+  - rubocop-rails
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.3
+  SuggestExtensions: false
+  # 自動生成ファイルは除外
+  Exclude:
+    - 'db/schema.rb'
+    - 'db/migrate/*.rb'
+    - 'bin/**/*'
+    - 'config/environments/*.rb'
+    - 'config/initializers/devise.rb'
+    - 'config/puma.rb'
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+
+# 1行の文字数制限（デフォルト120文字）
+Layout/LineLength:
+  Max: 120
+
+# メソッドの長さ制限を緩める
+Metrics/MethodLength:
+  Max: 20
+
+# ブロックの長さ制限を緩める
+Metrics/BlockLength:
+  Max: 50
+
+# クラスの長さ制限を緩める
+Metrics/ClassLength:
+  Max: 200
+
+# 分岐の複雑さを緩める
+Metrics/AbcSize:
+  Max: 40
+
+# 循環的複雑度を緩める（updateメソッドの条件分岐が多いため）
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+# 知覚的複雑度を緩める
+Metrics/PerceivedComplexity:
+  Max: 10
+
+# ダブルクォートを許可（Railsの慣習に合わせる）
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# 日本語コメントを許可
+Style/AsciiComments:
+  Enabled: false
+
+# frozen_string_literal コメントを必須にしない
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# ドキュメントコメントを必須にしない
+Style/Documentation:
+  Enabled: false
+
+# 日本語テキストをロケールファイルに移動しない（学習プロジェクトのため直接記述を許可）
+Rails/I18nLocaleTexts:
+  Enabled: false
