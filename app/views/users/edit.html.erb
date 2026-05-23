@@ -21,6 +21,7 @@
           <th>退社</th>
           <th>在社時間</th>
           <th>備考</th>
+          <th>指示者確認㊞</th>
         </tr>
       </thead>
 
@@ -84,6 +85,25 @@
                 <% end %>
               </td>
               <td><%= af.text_field :note, value: day.note, class: "form-control form-control-sm" %></td>
+              <% change_application = @change_applications[day.id] %>
+              <td>
+                <select name="attendances[<%= day.id %>][supervisor_id]"
+                        class="form-control form-control-sm" <%= "disabled" if future %>>
+                  <option value="">なし</option>
+                  <%= options_from_collection_for_select(
+                        @supervisors,
+                        :id,
+                        :name,
+                        change_application&.supervisor_id
+                      ) %>
+                </select>
+                <% if change_application.present? %>
+                  <div class="small mt-1">
+                    <%= change_application.supervisor.name %><br>
+                    勤怠変更<%= change_application.status %>
+                  </div>
+                <% end %>
+              </td>
             <% end %>
           </tr>
         <% end %>

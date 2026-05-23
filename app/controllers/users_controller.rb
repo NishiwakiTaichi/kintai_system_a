@@ -8,6 +8,7 @@ class UsersController < ApplicationController
   ]
   before_action :admin_or_correct_user, only: %i[show edit update]
   before_action :set_one_month, only: %i[show edit update]
+  before_action :set_attendance_change_form_options, only: %i[edit update]
 
   def user_attendance_index
     # 今日・出社済み・退社前 の勤怠レコードを持つユーザーを取得
@@ -134,6 +135,13 @@ class UsersController < ApplicationController
     end
 
     result
+  end
+
+  def set_attendance_change_form_options
+    @supervisors = User.where(superior: true).where.not(id: current_user.id)
+    @change_applications = AttendanceChangeApplication
+                           .where(attendance_id: @attendances.map(&:id))
+                           .index_by(&:attendance_id)
   end
 
   def basic_info_params
