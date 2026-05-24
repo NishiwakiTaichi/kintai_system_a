@@ -36,7 +36,8 @@
         <span class="text-danger"><%= @monthly_approval_count %>件の通知があります</span>
       <% end %>
     </button>
-    <button type="button" class="btn btn-sm btn-outline-secondary d-block">
+    <button type="button" class="btn btn-sm btn-outline-secondary d-block"
+            data-bs-toggle="modal" data-bs-target="#attendanceChangeNoticeModal">
       【勤怠変更申請のお知らせ】
       <% if @attendance_change_count > 0 %>
         <span class="text-danger"><%= @attendance_change_count %>件の通知があります</span>
@@ -313,6 +314,98 @@
           </div>
         <% end %>
 
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%# 勤怠変更申請のお知らせモーダル（上長ユーザー用） %>
+<% if current_user.superior? %>
+  <div class="modal fade" id="attendanceChangeNoticeModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <%= form_with url: bulk_update_attendance_change_applications_path, method: :patch, data: { turbo: false } do |f| %>
+          <%# 申請者ごとにグループ化 %>
+          <% grouped = @attendance_change_requests.group_by(&:user) %>
+
+          <div class="modal-header justify-content-center position-relative border-0">
+            <h5 class="modal-title">【 <%= grouped.keys.first&.name %> からの勤怠変更申請】</h5>
+            <button type="button" class="btn-close position-absolute end-0 me-3"
+                    data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body pt-0">
+            <% grouped.each_with_index do |(applicant, requests), index| %>
+              <% if index > 0 %>
+                <h5 class="fw-bold mb-3 text-center">【 <%= applicant.name %> からの勤怠変更申請】</h5>
+              <% end %>
+              <table class="table table-bordered table-striped text-center">
+                <thead>
+                  <tr>
+                    <th>日付</th>
+                    <th>曜日</th>
+                    <th>変更前出社</th>
+                    <th>変更前退社</th>
+                    <th>変更後出社</th>
+                    <th>変更後退社</th>
+                    <th>備考</th>
+                    <th>指示者確認㊞</th>
+                    <th>変更</th>
+                    <th>勤怠を確認する</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% requests.each do |ca| %>
+                    <% worked_on = ca.attendance.worked_on %>
+                    <tr>
+                      <%# 日付 %>
+                      <td class="align-middle"><%= l(worked_on, format: :short) %></td>
+                      <%# 曜日 %>
+                      <td class="align-middle <%= day_color_class(worked_on) %>">
+                        <%= %w[日 月 火 水 木 金 土][worked_on.wday] %>
+                      </td>
+                      <%# 変更前出社時間 %>
+                      <td class="align-middle"><%= ca.before_started_at&.strftime('%H:%M') %></td>
+                      <%# 変更前退社時間 %>
+                      <td class="align-middle"><%= ca.before_finished_at&.strftime('%H:%M') %></td>
+                      <%# 変更後出社時間 %>
+                      <td class="align-middle"><%= ca.after_started_at&.strftime('%H:%M') %></td>
+                      <%# 変更後退社時間 %>
+                      <td class="align-middle"><%= ca.after_finished_at&.strftime('%H:%M') %></td>
+                      <%# 備考 %>
+                      <td><%= ca.reason %></td>
+                      <%# 指示者確認㊞ %>
+                      <td>
+                        <select name="attendance_change_applications[<%= ca.id %>][status]"
+                                class="form-select form-select-sm">
+                          <% %w[なし 申請中 承認 否認].each do |s| %>
+                            <option value="<%= s %>" <%= 'selected' if ca.status == s %>><%= s %></option>
+                          <% end %>
+                        </select>
+                      </td>
+                      <%# 変更チェックボックス %>
+                      <td class="align-middle">
+                        <input type="checkbox"
+                               name="attendance_change_applications[<%= ca.id %>][change]"
+                               value="1">
+                      </td>
+                      <%# 勤怠を確認するボタン %>
+                      <td class="align-middle">
+                        <%= link_to "確認",
+                                    user_path(ca.user, date: worked_on.beginning_of_month),
+                                    class: "btn btn-app btn-sm" %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% end %>
+          </div>
+
+          <div class="modal-footer border-0">
+            <%= f.submit "変更を送信する", class: "btn btn-app w-100" %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>

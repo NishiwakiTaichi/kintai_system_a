@@ -15,6 +15,7 @@ AllCops:
     - 'config/puma.rb'
     - 'node_modules/**/*'
     - 'vendor/**/*'
+    - '**/*.erb'
 
 # 1行の文字数制限（デフォルト120文字）
 Layout/LineLength:

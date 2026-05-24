@@ -24,6 +24,11 @@ Rails.application.routes.draw do
       patch :bulk_update
     end
   end
+  resources :attendance_change_applications, only: [] do
+    collection do
+      patch :bulk_update
+    end
+  end
   get "user_attendance_index", to: "users#user_attendance_index"
   root to: "home#index"
 end

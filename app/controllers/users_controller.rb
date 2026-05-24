@@ -35,14 +35,7 @@ class UsersController < ApplicationController
     @worked_sum = @attendances.where.not(started_at: nil).count
 
     # 上長ユーザーの場合のみ、自分への申請データと件数を取得
-    if current_user.superior?
-      @overtime_requests       = OvertimeApplication
-                                 .where(supervisor_id: current_user.id, status: "申請中")
-                                 .includes(:user, :attendance)
-      @overtime_count          = @overtime_requests.count
-      @attendance_change_count = AttendanceChangeApplication.where(supervisor_id: current_user.id, status: "申請中").count
-      @monthly_approval_count  = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: "申請中").count
-    end
+    set_superior_notice_data if current_user.superior?
 
     # 所属長承認申請フォーム用：自身以外の上長ユーザーリスト
     @supervisors = User.where(superior: true).where.not(id: current_user.id)
@@ -108,6 +101,18 @@ class UsersController < ApplicationController
   end
 
   private
+
+  def set_superior_notice_data
+    @overtime_requests          = OvertimeApplication
+                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .includes(:user, :attendance)
+    @overtime_count             = @overtime_requests.count
+    @attendance_change_requests = AttendanceChangeApplication
+                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .includes(:user, :attendance)
+    @attendance_change_count    = @attendance_change_requests.count
+    @monthly_approval_count     = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: "申請中").count
+  end
 
   def process_attendance_row(attendance, attrs, processed)
     supervisor_id = attrs[:supervisor_id].presence
