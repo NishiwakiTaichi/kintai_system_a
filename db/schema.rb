@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_12_192310) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_23_225657) do
   create_table "attendance_change_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "supervisor_id", null: false
@@ -21,6 +21,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_12_192310) do
     t.string "status", default: "なし"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "after_started_at"
+    t.datetime "after_finished_at"
     t.index ["attendance_id"], name: "index_attendance_change_applications_on_attendance_id"
     t.index ["supervisor_id"], name: "index_attendance_change_applications_on_supervisor_id"
     t.index ["user_id"], name: "index_attendance_change_applications_on_user_id"
@@ -89,6 +91,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_12_192310) do
     t.datetime "designated_work_start_time"
     t.datetime "designated_work_end_time"
     t.boolean "superior", default: false
+    t.string "affiliation"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end

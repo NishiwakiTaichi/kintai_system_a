@@ -67,22 +67,20 @@ class UsersController < ApplicationController
   def edit; end
 
   def update
-    failed_records = {}
+    @application_errors = []
 
     ActiveRecord::Base.transaction do
       params[:attendances]&.each do |id, attrs|
         attendance = @user.attendances.find(id)
         processed = parse_overnight_time(attendance_params(attrs), attendance.worked_on)
-        attendance.assign_attributes(processed)
-        failed_records[attendance.id] = attendance unless attendance.save(context: :edit_attendance)
+        process_attendance_row(attendance, attrs, processed)
       end
-      raise ActiveRecord::Rollback if failed_records.any?
+      raise ActiveRecord::Rollback if @application_errors.any?
     end
 
-    if failed_records.empty?
+    if @application_errors.empty?
       redirect_to user_path(@user, date: @first_day), notice: "勤怠情報を更新しました。"
     else
-      @attendances = @attendances.map { |a| failed_records[a.id] || a }
       render :edit, status: :unprocessable_content
     end
   end
@@ -111,8 +109,61 @@ class UsersController < ApplicationController
 
   private
 
+  def process_attendance_row(attendance, attrs, processed)
+    supervisor_id = attrs[:supervisor_id].presence
+    if supervisor_id
+      save_change_application(attendance, processed, supervisor_id, attrs[:note])
+    else
+      attendance.assign_attributes(processed)
+      @application_errors.concat(attendance.errors.full_messages) unless attendance.save(context: :edit_attendance)
+    end
+  end
+
+  def save_change_application(attendance, processed, supervisor_id, reason)
+    errors = validate_change_application(processed, attendance.worked_on)
+    if errors.any?
+      @application_errors.concat(errors)
+      return
+    end
+
+    application = AttendanceChangeApplication.find_or_initialize_by(
+      attendance_id: attendance.id,
+      user_id: @user.id
+    )
+    application.assign_attributes(
+      supervisor_id: supervisor_id,
+      before_started_at: attendance.started_at,
+      before_finished_at: attendance.finished_at,
+      after_started_at: processed[:started_at],
+      after_finished_at: processed[:finished_at],
+      reason: reason,
+      status: "申請中"
+    )
+    @application_errors << "勤怠変更申請の保存に失敗しました" unless application.save
+  end
+
   def attendance_params(attrs)
-    attrs.permit(:started_at_hour, :started_at_minute, :finished_at_hour, :finished_at_minute, :note)
+    attrs.permit(:started_at_hour, :started_at_minute, :finished_at_hour, :finished_at_minute, :note, :supervisor_id)
+  end
+
+  def validate_change_application(processed, worked_on)
+    messages = []
+    started = processed[:started_at]
+    finished = processed[:finished_at]
+
+    # 出社のみ or 退社のみの入力はエラー
+    if started.present? && finished.blank?
+      messages << "#{worked_on.strftime('%m/%d')}: 退社時間も入力してください"
+    elsif started.blank? && finished.present?
+      messages << "#{worked_on.strftime('%m/%d')}: 出社時間も入力してください"
+    end
+
+    # 退社時間は出社時間より後でなければならない
+    if started.present? && finished.present? && finished <= started
+      messages << "#{worked_on.strftime('%m/%d')}: 退社時間は出社時間より後にしてください"
+    end
+
+    messages
   end
 
   def parse_overnight_time(attrs, worked_on)

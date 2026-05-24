@@ -1,11 +1,9 @@
 <%= form_with(url: user_path(@user, date: @first_day), method: :patch) do |f| %>
-  <% if @attendances.any? { |a| a.errors.any? } %>
+  <% if @application_errors&.any? %>
     <div class="alert alert-danger mt-3">
       <ul class="mb-0">
-        <% @attendances.each do |a| %>
-          <% a.errors.full_messages.each do |msg| %>
-            <li><%= msg %></li>
-          <% end %>
+        <% @application_errors.each do |msg| %>
+          <li><%= msg %></li>
         <% end %>
       </ul>
     </div>
