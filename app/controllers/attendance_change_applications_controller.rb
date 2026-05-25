@@ -8,6 +8,14 @@ class AttendanceChangeApplicationsController < ApplicationController
 
       application = AttendanceChangeApplication.find(id)
       application.update(status: attrs[:status])
+
+      # 承認された場合は勤怠データを実際の時刻で上書きする
+      next unless attrs[:status] == "承認"
+
+      application.attendance.update(
+        started_at: application.after_started_at,
+        finished_at: application.after_finished_at
+      )
     end
     redirect_back_or_to root_path, notice: "勤怠変更申請を更新しました。"
   end
