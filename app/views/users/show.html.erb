@@ -492,7 +492,12 @@
     <table class="table table-bordered text-center" style="width: auto;">
       <tr>
         <td class="align-middle">
-          所属長承認　<%= @monthly_approval&.status || 'なし' %>
+          所属長承認
+          <% if @monthly_approval %>
+            <%= @monthly_approval.supervisor.name %><br><%= @monthly_approval.status %>
+          <% else %>
+            なし
+          <% end %>
         </td>
         <td>
           <%= f.select :supervisor_id,
