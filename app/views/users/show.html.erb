@@ -30,7 +30,8 @@
 <%# 通知ボタン3種（上長ユーザーのみ表示・勤怠を編集の上） %>
 <% if current_user.superior? %>
   <div class="mb-2">
-    <button type="button" class="btn btn-sm btn-outline-secondary d-block">
+    <button type="button" class="btn btn-sm btn-outline-secondary d-block"
+            data-bs-toggle="modal" data-bs-target="#monthlyApprovalNoticeModal">
       【所属長承認申請のお知らせ】
       <% if @monthly_approval_count > 0 %>
         <span class="text-danger"><%= @monthly_approval_count %>件の通知があります</span>
@@ -400,6 +401,72 @@
                 </tbody>
               </table>
             <% end %>
+          </div>
+
+          <div class="modal-footer border-0">
+            <%= f.submit "変更を送信する", class: "btn btn-app w-100" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%# 所属長承認申請のお知らせモーダル（上長ユーザー用） %>
+<% if current_user.superior? %>
+  <div class="modal fade" id="monthlyApprovalNoticeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <%= form_with url: bulk_update_monthly_approval_applications_path, method: :patch, data: { turbo: false } do |f| %>
+          <div class="modal-header justify-content-center position-relative border-0">
+            <h5 class="modal-title">【所属長承認申請のお知らせ】</h5>
+            <button type="button" class="btn-close position-absolute end-0 me-3"
+                    data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body pt-0">
+            <table class="table table-bordered table-striped text-center">
+              <thead>
+                <tr>
+                  <th>変更</th>
+                  <th>申請月</th>
+                  <th>申請者</th>
+                  <th>指示者確認㊞</th>
+                  <th>勤怠を確認する</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @monthly_approval_requests.each do |ma| %>
+                  <tr>
+                    <%# 変更チェックボックス %>
+                    <td class="align-middle">
+                      <input type="checkbox"
+                             name="monthly_approval_applications[<%= ma.id %>][change]"
+                             value="1">
+                    </td>
+                    <%# 申請月 %>
+                    <td class="align-middle"><%= l(ma.target_month, format: :middle) %></td>
+                    <%# 申請者 %>
+                    <td class="align-middle"><%= ma.user.name %></td>
+                    <%# 指示者確認㊞ %>
+                    <td>
+                      <select name="monthly_approval_applications[<%= ma.id %>][status]"
+                              class="form-select form-select-sm">
+                        <% %w[なし 申請中 承認 否認].each do |s| %>
+                          <option value="<%= s %>" <%= 'selected' if ma.status == s %>><%= s %></option>
+                        <% end %>
+                      </select>
+                    </td>
+                    <%# 勤怠を確認するボタン %>
+                    <td class="align-middle">
+                      <%= link_to "確認",
+                                  user_path(ma.user, date: ma.target_month),
+                                  class: "btn btn-app btn-sm" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
 
           <div class="modal-footer border-0">

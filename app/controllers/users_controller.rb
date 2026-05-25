@@ -111,7 +111,10 @@ class UsersController < ApplicationController
                                   .where(supervisor_id: current_user.id, status: "申請中")
                                   .includes(:user, :attendance)
     @attendance_change_count    = @attendance_change_requests.count
-    @monthly_approval_count     = MonthlyApprovalApplication.where(supervisor_id: current_user.id, status: "申請中").count
+    @monthly_approval_requests  = MonthlyApprovalApplication
+                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .includes(:user)
+    @monthly_approval_count     = @monthly_approval_requests.count
   end
 
   def process_attendance_row(attendance, attrs, processed)

@@ -18,7 +18,11 @@ Rails.application.routes.draw do
     resources :attendances, only: [:update]
   end
   resources :base_points, only: %i[index new create edit update destroy]
-  resources :monthly_approval_applications, only: [:create]
+  resources :monthly_approval_applications, only: [:create] do
+    collection do
+      patch :bulk_update
+    end
+  end
   resources :overtime_applications, only: [:create] do
     collection do
       patch :bulk_update

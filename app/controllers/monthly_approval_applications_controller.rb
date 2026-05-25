@@ -22,4 +22,15 @@ class MonthlyApprovalApplicationsController < ApplicationController
 
     redirect_to user_path(user_id, date: target_month), notice: "所属長承認申請を送信しました。"
   end
+
+  def bulk_update
+    params[:monthly_approval_applications]&.each do |id, attrs|
+      # 変更チェックが入っている申請のみ更新
+      next unless attrs[:change] == "1"
+
+      application = MonthlyApprovalApplication.find(id)
+      application.update(status: attrs[:status])
+    end
+    redirect_back_or_to root_path, notice: "所属長承認申請を更新しました。"
+  end
 end
