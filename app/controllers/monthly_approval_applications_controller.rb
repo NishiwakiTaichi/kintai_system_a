@@ -2,9 +2,9 @@ class MonthlyApprovalApplicationsController < ApplicationController
   before_action :authenticate_user!
 
   def create
-    supervisor_id = params[:monthly_approval_application][:supervisor_id].presence
-    user_id       = params[:monthly_approval_application][:user_id]
-    target_month  = params[:monthly_approval_application][:target_month]
+    supervisor_id = params[:supervisor_id].presence
+    user_id       = params[:user_id]
+    target_month  = params[:target_month]
 
     # 上長が未選択の場合はエラー
     if supervisor_id.blank?
