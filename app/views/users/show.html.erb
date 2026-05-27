@@ -3,11 +3,16 @@
   <table class="table table-bordered text-center">
     <tr>
       <td class="align-middle">
-        <%= link_to "←", user_path(@user, date: @first_day.prev_month),
-                    class: "btn btn-sm btn-app" %>
+        <%# confirm=true のとき月変更矢印を非表示にする %>
+        <% unless params[:confirm] == "true" %>
+          <%= link_to "←", user_path(@user, date: @first_day.prev_month),
+                      class: "btn btn-sm btn-app" %>
+        <% end %>
         <%= l(@first_day, format: :middle) %> 時間管理表
-        <%= link_to "→", user_path(@user, date: @first_day.next_month),
-                    class: "btn btn-sm btn-app" %>
+        <% unless params[:confirm] == "true" %>
+          <%= link_to "→", user_path(@user, date: @first_day.next_month),
+                      class: "btn btn-sm btn-app" %>
+        <% end %>
       </td>
       <td>
         指定勤務開始時間　<%= format_basic_info(@user.designated_work_start_time) %><br>
@@ -27,8 +32,8 @@
   </table>
 </div>
 
-<%# 通知ボタン3種（上長ユーザーのみ表示・勤怠を編集の上） %>
-<% if current_user.superior? %>
+<%# 通知ボタン3種（上長ユーザーのみ表示・confirm=trueのときは非表示） %>
+<% if current_user.superior? && params[:confirm] != "true" %>
   <div class="mb-2">
     <button type="button" class="btn btn-sm btn-outline-secondary d-block"
             data-bs-toggle="modal" data-bs-target="#monthlyApprovalNoticeModal">
@@ -54,16 +59,18 @@
   </div>
 <% end %>
 
-<%# 勤怠操作ボタン %>
-<div class="mb-3">
-  <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day),
-              class: "btn btn-app btn-sm" %>
-  <%= link_to "CSV出力", "#",
-              class: "btn btn-app btn-sm" %>
-  <br>
-  <%= link_to "勤怠修正ログ（承認済）", "#",
-              class: "btn btn-app btn-sm" %>
-</div>
+<%# 勤怠操作ボタン（confirm=trueのときは非表示） %>
+<% unless params[:confirm] == "true" %>
+  <div class="mb-3">
+    <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day),
+                class: "btn btn-app btn-sm" %>
+    <%= link_to "CSV出力", "#",
+                class: "btn btn-app btn-sm" %>
+    <br>
+    <%= link_to "勤怠修正ログ（承認済）", "#",
+                class: "btn btn-app btn-sm" %>
+  </div>
+<% end %>
 
 <%# 勤怠テーブル %>
 <div>
@@ -98,13 +105,15 @@
         <% floored_started  = floor_to_15min(day.started_at) %>
         <% floored_finished = floor_to_15min(day.finished_at) %>
         <tr>
-          <%# 残業申請ボタン %>
+          <%# 残業申請ボタン（confirm=trueのときは非表示） %>
           <td>
-            <button type="button" class="btn btn-app btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#overtimeModal-<%= day.id %>">
-              残業申請
-            </button>
+            <% unless params[:confirm] == "true" %>
+              <button type="button" class="btn btn-app btn-sm"
+                      data-bs-toggle="modal"
+                      data-bs-target="#overtimeModal-<%= day.id %>">
+                残業申請
+              </button>
+            <% end %>
           </td>
 
           <td><%= l(day.worked_on, format: :short) %></td>
@@ -300,7 +309,7 @@
                       <%# 勤怠を確認するボタン %>
                       <td class="align-middle">
                         <%= link_to "確認",
-                                    user_path(ot.user, date: worked_on.beginning_of_month),
+                                    user_path(ot.user, date: worked_on.beginning_of_month, confirm: "true"),
                                     class: "btn btn-app btn-sm" %>
                       </td>
                     </tr>
@@ -393,7 +402,7 @@
                       <%# 勤怠を確認するボタン %>
                       <td class="align-middle">
                         <%= link_to "確認",
-                                    user_path(ca.user, date: worked_on.beginning_of_month),
+                                    user_path(ca.user, date: worked_on.beginning_of_month, confirm: "true"),
                                     class: "btn btn-app btn-sm" %>
                       </td>
                     </tr>
@@ -460,7 +469,7 @@
                     <%# 勤怠を確認するボタン %>
                     <td class="align-middle">
                       <%= link_to "確認",
-                                  user_path(ma.user, date: ma.target_month),
+                                  user_path(ma.user, date: ma.target_month, confirm: "true"),
                                   class: "btn btn-app btn-sm" %>
                     </td>
                   </tr>
@@ -551,7 +560,8 @@
   </div>
 <% end %>
 
-<%# 所属長承認申請フォーム %>
+<%# 所属長承認申請フォーム（confirm=trueのときは非表示） %>
+<% unless params[:confirm] == "true" %>
 <div class="mt-3">
   <%= form_with url: monthly_approval_applications_path, method: :post do |f| %>
     <%= f.hidden_field :user_id, value: @user.id %>
@@ -579,3 +589,4 @@
     </table>
   <% end %>
 </div>
+<% end %>
