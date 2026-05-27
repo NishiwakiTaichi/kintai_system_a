@@ -67,7 +67,7 @@
     <%= link_to "CSV出力", export_csv_user_path(@user, date: @first_day),
                 class: "btn btn-app btn-sm" %>
     <br>
-    <%= link_to "勤怠修正ログ（承認済）", "#",
+    <%= link_to "勤怠修正ログ（承認済）", attendance_log_user_path(@user),
                 class: "btn btn-app btn-sm" %>
   </div>
 <% end %>

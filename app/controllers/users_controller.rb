@@ -1,14 +1,15 @@
 require "csv"
 
+# rubocop:disable Metrics/ClassLength
 class UsersController < ApplicationController
   before_action :authenticate_user!
   before_action :admin_user, only: %i[
     index destroy edit_basic_info update_basic_info import user_attendance_index
   ]
   before_action :set_user, only: %i[
-    show edit update destroy edit_basic_info update_basic_info export_csv
+    show edit update destroy edit_basic_info update_basic_info export_csv attendance_log
   ]
-  before_action :admin_or_correct_user, only: %i[show edit update export_csv]
+  before_action :admin_or_correct_user, only: %i[show edit update export_csv attendance_log]
   before_action :set_one_month, only: %i[show edit update export_csv]
   before_action :set_attendance_change_form_options, only: %i[edit update]
 
@@ -76,6 +77,11 @@ class UsersController < ApplicationController
     send_data "﻿#{csv_data}", filename: filename, type: "text/csv"
   end
 
+  def attendance_log
+    logs = fetch_approved_change_logs
+    @attendance_logs = build_attendance_log_rows(logs)
+  end
+
   def edit; end
 
   def update
@@ -120,6 +126,36 @@ class UsersController < ApplicationController
   end
 
   private
+
+  # 承認済みの勤怠変更申請を取得（年月フィルター対応）
+  def fetch_approved_change_logs
+    logs = @user.attendance_change_applications
+                .where(status: "承認済")
+                .includes(:attendance, :supervisor)
+    return logs unless params[:year].present? && params[:month].present?
+
+    start_date = Date.new(params[:year].to_i, params[:month].to_i, 1)
+    logs.joins(:attendance).where(attendances: { worked_on: start_date..start_date.end_of_month })
+  end
+
+  # 複数の変更申請を1勤怠ごとに集約して表示用ハッシュの配列を返す
+  def build_attendance_log_rows(logs)
+    rows = logs.group_by(&:attendance_id).map do |_id, grouped|
+      sorted = grouped.sort_by(&:created_at)
+      first  = sorted.first
+      last   = sorted.last
+      {
+        worked_on: first.attendance.worked_on,
+        before_started_at: first.before_started_at,
+        before_finished_at: first.before_finished_at,
+        after_started_at: last.after_started_at,
+        after_finished_at: last.after_finished_at,
+        supervisor_name: last.supervisor.name,
+        approved_at: last.updated_at
+      }
+    end
+    rows.sort_by { |log| log[:worked_on] }
+  end
 
   def set_superior_notice_data
     @overtime_requests          = OvertimeApplication
@@ -237,3 +273,4 @@ class UsersController < ApplicationController
     )
   end
 end
+# rubocop:enable Metrics/ClassLength
