@@ -1,13 +1,15 @@
+require "csv"
+
 class UsersController < ApplicationController
   before_action :authenticate_user!
   before_action :admin_user, only: %i[
     index destroy edit_basic_info update_basic_info import user_attendance_index
   ]
   before_action :set_user, only: %i[
-    show edit update destroy edit_basic_info update_basic_info
+    show edit update destroy edit_basic_info update_basic_info export_csv
   ]
-  before_action :admin_or_correct_user, only: %i[show edit update]
-  before_action :set_one_month, only: %i[show edit update]
+  before_action :admin_or_correct_user, only: %i[show edit update export_csv]
+  before_action :set_one_month, only: %i[show edit update export_csv]
   before_action :set_attendance_change_form_options, only: %i[edit update]
 
   def user_attendance_index
@@ -55,6 +57,23 @@ class UsersController < ApplicationController
       user_id: @user.id,
       target_month: @first_day
     )
+  end
+
+  def export_csv
+    # CSVデータを生成する（未承認の変更申請は承認時にattendancesが更新されるため、attendancesをそのまま使えばOK）
+    csv_data = CSV.generate(headers: true, encoding: "UTF-8") do |csv|
+      csv << %w[日付 出社時間 退社時間]
+      @attendances.each do |attendance|
+        csv << [
+          attendance.worked_on.strftime("%m/%d"),
+          attendance.started_at&.strftime("%H:%M"),
+          attendance.finished_at&.strftime("%H:%M")
+        ]
+      end
+    end
+
+    filename = "#{@user.name}_#{@first_day.strftime('%Y%m')}_勤怠.csv"
+    send_data "﻿#{csv_data}", filename: filename, type: "text/csv"
   end
 
   def edit; end

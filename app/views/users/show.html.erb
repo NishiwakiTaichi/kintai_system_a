@@ -64,7 +64,7 @@
   <div class="mb-3">
     <%= link_to "勤怠を編集", edit_user_path(@user, date: @first_day),
                 class: "btn btn-app btn-sm" %>
-    <%= link_to "CSV出力", "#",
+    <%= link_to "CSV出力", export_csv_user_path(@user, date: @first_day),
                 class: "btn btn-app btn-sm" %>
     <br>
     <%= link_to "勤怠修正ログ（承認済）", "#",
