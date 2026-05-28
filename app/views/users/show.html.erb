@@ -125,7 +125,7 @@
           <% if day.worked_on == Date.current && day.started_at.nil? %>
             <td colspan="2">
               <%= button_to "出社", user_attendance_path(@user, day),
-                            method: :patch, class: "btn btn-primary btn-sm" %>
+                            method: :patch, class: "btn btn-app btn-sm" %>
             </td>
           <% else %>
             <td><%= floored_started&.hour %></td>
@@ -136,7 +136,7 @@
           <% if day.started_at.present? && day.finished_at.nil? %>
             <td colspan="2">
               <%= button_to "退社", user_attendance_path(@user, day),
-                            method: :patch, class: "btn btn-warning btn-sm" %>
+                            method: :patch, class: "btn btn-app btn-sm" %>
             </td>
           <% else %>
             <% finished_hour = floored_finished.present? && floored_finished.to_date > day.worked_on ?

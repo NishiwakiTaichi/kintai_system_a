@@ -6,7 +6,7 @@
   <%= form_with url: attendance_log_user_path(@user), method: :get, local: true do |f| %>
     <div class="d-flex align-items-center gap-2 mb-3">
       <%# リセットボタン（フィルターなしで再表示） %>
-      <%= link_to "リセット", attendance_log_user_path(@user), class: "btn btn-secondary btn-sm" %>
+      <%= link_to "リセット", attendance_log_user_path(@user), class: "btn btn-app btn-sm" %>
 
       <%# 年のセレクトボックス %>
       <%= f.label :year, "年", class: "mb-0" %>
