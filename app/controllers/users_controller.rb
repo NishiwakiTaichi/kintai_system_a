@@ -9,6 +9,7 @@ class UsersController < ApplicationController
   before_action :set_user, only: %i[
     show edit update destroy edit_basic_info update_basic_info export_csv attendance_log
   ]
+  before_action :deny_admin, only: %i[show edit update export_csv attendance_log]
   before_action :admin_or_correct_user, only: %i[show edit update export_csv attendance_log]
   before_action :set_one_month, only: %i[show edit update export_csv]
   before_action :set_attendance_change_form_options, only: %i[edit update]

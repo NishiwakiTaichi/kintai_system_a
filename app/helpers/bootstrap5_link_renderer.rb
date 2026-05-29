@@ -1,6 +1,9 @@
 class Bootstrap5LinkRenderer < WillPaginate::ActionView::LinkRenderer
   def html_container(html)
-    tag.nav(tag(:ul, html, class: "pagination"))
+    # rubocop:disable Rails/ContentTag
+    # will_paginate が tag メソッドを独自実装しているため tag.nav 形式は使えない
+    tag(:nav, tag(:ul, html, class: "pagination"))
+    # rubocop:enable Rails/ContentTag
   end
 
   def page_number(page)
