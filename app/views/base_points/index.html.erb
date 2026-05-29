@@ -1,7 +1,7 @@
 <div class="container mt-4">
   <h2 class="mb-4">拠点情報</h2>
 
-  <%= link_to "拠点情報追加", new_base_point_path, class: "btn btn-primary mb-3" %>
+  <%= link_to "拠点情報追加", new_base_point_path, class: "btn btn-app mb-3" %>
 
   <table class="table table-bordered table-hover">
     <thead class="table-dark">
@@ -16,10 +16,10 @@
       <% @base_points.each do |base_point| %>
         <tr>
           <td>
-            <%= link_to "修正", edit_base_point_path(base_point), class: "btn btn-primary btn-sm" %>
+            <%= link_to "修正", edit_base_point_path(base_point), class: "btn btn-app btn-sm" %>
             <%= link_to "削除", base_point_path(base_point),
                         data: { turbo_method: :delete, turbo_confirm: "削除しますか？" },
-                        class: "btn btn-danger btn-sm" %>
+                        class: "btn btn-app btn-sm" %>
           </td>
           <td><%= base_point.base_number %></td>
           <td><%= base_point.name %></td>

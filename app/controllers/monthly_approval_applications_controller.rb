@@ -1,5 +1,6 @@
 class MonthlyApprovalApplicationsController < ApplicationController
   before_action :authenticate_user!
+  before_action :deny_admin
 
   def create
     supervisor_id = params[:supervisor_id].presence

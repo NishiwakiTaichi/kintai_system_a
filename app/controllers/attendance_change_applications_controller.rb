@@ -1,5 +1,6 @@
 class AttendanceChangeApplicationsController < ApplicationController
   before_action :authenticate_user!
+  before_action :deny_admin
 
   def bulk_update
     params[:attendance_change_applications]&.each do |id, attrs|

@@ -13,10 +13,18 @@ class ApplicationController < ActionController::Base
     redirect_to root_url unless current_user.admin?
   end
 
-  # 管理者または本人のみアクセスを許可する
+  # 管理者のアクセスを禁止する（勤怠・申請系ページ用）
+  def deny_admin
+    return unless current_user.admin?
+
+    flash[:danger] = "このページにはアクセスできません。"
+    redirect_to root_url
+  end
+
+  # 本人または上長のみアクセスを許可する（管理者は不可）
   def admin_or_correct_user
     @user = User.find(params[:user_id]) if @user.blank?
-    return if current_user == @user || current_user.admin? || current_user.superior?
+    return if current_user == @user || current_user.superior?
 
     flash[:danger] = "編集権限がありません。"
     redirect_to root_url

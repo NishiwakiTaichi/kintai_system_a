@@ -1,0 +1,56 @@
+<%# 勤怠修正ログ（承認済）ページ %>
+<div class="container mt-4">
+  <h2 class="text-center mb-4">勤怠ログ</h2>
+
+  <%# 年月フィルターフォーム %>
+  <%= form_with url: attendance_log_user_path(@user), method: :get, local: true do |f| %>
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <%# リセットボタン（フィルターなしで再表示） %>
+      <%= link_to "リセット", attendance_log_user_path(@user), class: "btn btn-app btn-sm" %>
+
+      <%# 年のセレクトボックス %>
+      <%= f.label :year, "年", class: "mb-0" %>
+      <%= f.select :year,
+                   options_for_select((Date.current.year - 3..Date.current.year).map { |y| [y, y] }, params[:year]&.to_i),
+                   { include_blank: true },
+                   class: "form-select form-select-sm", style: "width: auto;" %>
+
+      <%# 月のセレクトボックス %>
+      <%= f.label :month, "月", class: "mb-0" %>
+      <%= f.select :month,
+                   options_for_select((1..12).map { |m| [m, m] }, params[:month]&.to_i),
+                   { include_blank: true },
+                   class: "form-select form-select-sm", style: "width: auto;" %>
+
+      <%= f.submit "絞り込む", class: "btn btn-app btn-sm" %>
+    </div>
+  <% end %>
+
+  <%# 勤怠修正ログテーブル %>
+  <table class="table table-bordered table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>日付</th>
+        <th>変更前出社時間</th>
+        <th>変更前退社時間</th>
+        <th>変更後出社</th>
+        <th>変更後退社</th>
+        <th>指示者</th>
+        <th>承認日</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @attendance_logs.each do |log| %>
+        <tr>
+          <td><%= log[:worked_on].strftime("%Y-%m-%d") %></td>
+          <td><%= log[:before_started_at]&.strftime("%H:%M") %></td>
+          <td><%= log[:before_finished_at]&.strftime("%H:%M") %></td>
+          <td><%= log[:after_started_at]&.strftime("%H:%M") %></td>
+          <td><%= log[:after_finished_at]&.strftime("%H:%M") %></td>
+          <td><%= log[:supervisor_name] %></td>
+          <td><%= log[:approved_at].strftime("%Y-%m-%d") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
