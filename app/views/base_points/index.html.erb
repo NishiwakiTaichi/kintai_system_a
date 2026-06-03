@@ -1,12 +1,11 @@
 <div class="container mt-4">
-  <h2 class="mb-4">拠点情報</h2>
+  <h2 class="mb-4 text-center">拠点一覧</h2>
 
-  <%= link_to "拠点情報追加", new_base_point_path, class: "btn btn-app mb-3" %>
-
-  <table class="table table-bordered table-hover">
-    <thead class="table-dark">
+  <table class="table table-bordered table-hover table-striped text-center">
+    <thead class="bg-white">
       <tr>
-        <th></th>
+        <th style="width: 25%"></th>
+        <th style="width: 25%"></th>
         <th>拠点番号</th>
         <th>拠点名</th>
         <th>勤怠種類</th>
@@ -15,8 +14,8 @@
     <tbody>
       <% @base_points.each do |base_point| %>
         <tr>
-          <td>
-            <%= link_to "修正", edit_base_point_path(base_point), class: "btn btn-app btn-sm" %>
+          <td class="text-nowrap text-start"><%= link_to "修正", edit_base_point_path(base_point), class: "btn btn-app btn-sm" %></td>
+          <td class="text-nowrap">
             <%= link_to "削除", base_point_path(base_point),
                         data: { turbo_method: :delete, turbo_confirm: "削除しますか？" },
                         class: "btn btn-app btn-sm" %>
@@ -28,4 +27,6 @@
       <% end %>
     </tbody>
   </table>
+
+  <%= link_to "拠点情報追加", new_base_point_path, class: "btn btn-app mt-2" %>
 </div>

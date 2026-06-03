@@ -74,7 +74,7 @@
 
 <%# 勤怠テーブル %>
 <div>
-  <table class="table table-bordered table-hover text-center">
+  <table class="table table-bordered table-striped table-hover text-center">
     <thead>
       <tr>
         <th rowspan="3">残業申請</th>
@@ -199,24 +199,36 @@
 
     <tfoot>
       <tr>
-        <td colspan="3">累計日数</td>
-        <td colspan="5">総合勤務時間</td>
-        <td colspan="6">累計在社時間</td>
-      </tr>
-      <tr>
-        <td colspan="3"><%= @attendances.count %></td>
-        <td colspan="5">
-          <% if @user.basic_time.present? %>
-            <%= format_basic_info(@user.basic_time).to_f * @worked_sum %>
-          <% end %>
-        </td>
-        <td colspan="6">
+        <td></td>
+        <td colspan="2"></td>
+        <td></td><td></td><td></td><td></td>
+        <td>
           <% total = @attendances
                       .select { |d| d.started_at.present? && d.finished_at.present? }
                       .sum { |d|
                         working_times(floor_to_15min(d.started_at), floor_to_15min(d.finished_at)).to_f
                       } %>
           <%= format("%.2f", total) %>
+        </td>
+        <td colspan="5"></td>
+        <td>
+          所属長承認
+          <% if @monthly_approval %>
+            <%= @monthly_approval.supervisor.name %><br><%= @monthly_approval.status %>
+          <% else %>
+            未
+          <% end %>
+          <% unless params[:confirm] == "true" %>
+            <%= form_with url: monthly_approval_applications_path, method: :post do |f| %>
+              <%= f.hidden_field :user_id, value: @user.id %>
+              <%= f.hidden_field :target_month, value: @first_day %>
+              <%= f.select :supervisor_id,
+                           options_from_collection_for_select(@supervisors, :id, :name),
+                           { include_blank: true },
+                           { class: 'form-select form-select-sm mt-1' } %>
+              <%= f.submit '申請', class: 'btn btn-app w-100 mt-1' %>
+            <% end %>
+          <% end %>
         </td>
       </tr>
     </tfoot>
@@ -339,29 +351,40 @@
           <% grouped = @attendance_change_requests.group_by(&:user) %>
 
           <div class="modal-header justify-content-center position-relative border-0">
-            <h5 class="modal-title">【 <%= grouped.keys.first&.name %> からの勤怠変更申請】</h5>
+            <h5 class="modal-title">【勤怠変更申請のお知らせ】</h5>
             <button type="button" class="btn-close position-absolute end-0 me-3"
                     data-bs-dismiss="modal"></button>
           </div>
 
           <div class="modal-body pt-0">
+            <% if grouped.empty? %>
+              <p class="text-center text-muted mt-3">現在、申請はありません。</p>
+            <% else %>
             <% grouped.each_with_index do |(applicant, requests), index| %>
-              <% if index > 0 %>
-                <h5 class="fw-bold mb-3 text-center">【 <%= applicant.name %> からの勤怠変更申請】</h5>
-              <% end %>
+              <h5 class="fw-bold mb-3 text-center">【 <%= applicant.name %> からの勤怠変更申請】</h5>
               <table class="table table-bordered table-striped text-center">
                 <thead>
                   <tr>
-                    <th>日付</th>
-                    <th>曜日</th>
-                    <th>変更前出社</th>
-                    <th>変更前退社</th>
-                    <th>変更後出社</th>
-                    <th>変更後退社</th>
-                    <th>備考</th>
-                    <th>指示者確認㊞</th>
-                    <th>変更</th>
-                    <th>勤怠を確認する</th>
+                    <th rowspan="3">日付</th>
+                    <th rowspan="3">曜日</th>
+                    <th colspan="4">変更前</th>
+                    <th colspan="4">変更後</th>
+                    <th rowspan="3">備考</th>
+                    <th rowspan="3">指示者確認㊞</th>
+                    <th rowspan="3">変更</th>
+                    <th rowspan="3">勤怠を確認する</th>
+                  </tr>
+                  <tr>
+                    <th colspan="2">出社</th>
+                    <th colspan="2">退社</th>
+                    <th colspan="2">出社</th>
+                    <th colspan="2">退社</th>
+                  </tr>
+                  <tr>
+                    <th>時</th><th>分</th>
+                    <th>時</th><th>分</th>
+                    <th>時</th><th>分</th>
+                    <th>時</th><th>分</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,14 +397,18 @@
                       <td class="align-middle <%= day_color_class(worked_on) %>">
                         <%= %w[日 月 火 水 木 金 土][worked_on.wday] %>
                       </td>
-                      <%# 変更前出社時間 %>
-                      <td class="align-middle"><%= ca.before_started_at&.strftime('%H:%M') %></td>
-                      <%# 変更前退社時間 %>
-                      <td class="align-middle"><%= ca.before_finished_at&.strftime('%H:%M') %></td>
-                      <%# 変更後出社時間 %>
-                      <td class="align-middle"><%= ca.after_started_at&.strftime('%H:%M') %></td>
-                      <%# 変更後退社時間 %>
-                      <td class="align-middle"><%= ca.after_finished_at&.strftime('%H:%M') %></td>
+                      <%# 変更前出社（時・分） %>
+                      <td class="align-middle"><%= ca.before_started_at&.hour %></td>
+                      <td class="align-middle"><%= ca.before_started_at&.strftime('%M') %></td>
+                      <%# 変更前退社（時・分） %>
+                      <td class="align-middle"><%= ca.before_finished_at&.hour %></td>
+                      <td class="align-middle"><%= ca.before_finished_at&.strftime('%M') %></td>
+                      <%# 変更後出社（時・分） %>
+                      <td class="align-middle"><%= ca.after_started_at&.hour %></td>
+                      <td class="align-middle"><%= ca.after_started_at&.strftime('%M') %></td>
+                      <%# 変更後退社（時・分） %>
+                      <td class="align-middle"><%= ca.after_finished_at&.hour %></td>
+                      <td class="align-middle"><%= ca.after_finished_at&.strftime('%M') %></td>
                       <%# 備考 %>
                       <td><%= ca.reason %></td>
                       <%# 指示者確認㊞ %>
@@ -410,6 +437,7 @@
                 </tbody>
               </table>
             <% end %>
+            <% end %>
           </div>
 
           <div class="modal-footer border-0">
@@ -427,6 +455,9 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <%= form_with url: bulk_update_monthly_approval_applications_path, method: :patch, data: { turbo: false } do |f| %>
+          <%# 申請者ごとにグループ化 %>
+          <% grouped_ma = @monthly_approval_requests.group_by(&:user) %>
+
           <div class="modal-header justify-content-center position-relative border-0">
             <h5 class="modal-title">【所属長承認申請のお知らせ】</h5>
             <button type="button" class="btn-close position-absolute end-0 me-3"
@@ -434,48 +465,52 @@
           </div>
 
           <div class="modal-body pt-0">
-            <table class="table table-bordered table-striped text-center">
-              <thead>
-                <tr>
-                  <th>変更</th>
-                  <th>申請月</th>
-                  <th>申請者</th>
-                  <th>指示者確認㊞</th>
-                  <th>勤怠を確認する</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @monthly_approval_requests.each do |ma| %>
-                  <tr>
-                    <%# 変更チェックボックス %>
-                    <td class="align-middle">
-                      <input type="checkbox"
-                             name="monthly_approval_applications[<%= ma.id %>][change]"
-                             value="1">
-                    </td>
-                    <%# 申請月 %>
-                    <td class="align-middle"><%= l(ma.target_month, format: :middle) %></td>
-                    <%# 申請者 %>
-                    <td class="align-middle"><%= ma.user.name %></td>
-                    <%# 指示者確認㊞ %>
-                    <td>
-                      <select name="monthly_approval_applications[<%= ma.id %>][status]"
-                              class="form-select form-select-sm">
-                        <% %w[なし 申請中 承認 否認].each do |s| %>
-                          <option value="<%= s %>" <%= 'selected' if ma.status == s %>><%= s %></option>
-                        <% end %>
-                      </select>
-                    </td>
-                    <%# 勤怠を確認するボタン %>
-                    <td class="align-middle">
-                      <%= link_to "確認",
-                                  user_path(ma.user, date: ma.target_month, confirm: "true"),
-                                  class: "btn btn-app btn-sm" %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+            <% if grouped_ma.empty? %>
+              <p class="text-center text-muted mt-3">現在、申請はありません。</p>
+            <% else %>
+              <% grouped_ma.each do |applicant, requests| %>
+                <h5 class="fw-bold mb-3 text-center">【 <%= applicant.name %> からの1ヵ月分勤怠申請】</h5>
+                <table class="table table-bordered table-striped text-center">
+                  <thead>
+                    <tr>
+                      <th>月</th>
+                      <th>指示者確認㊞</th>
+                      <th>変更</th>
+                      <th>勤怠を確認する</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% requests.each do |ma| %>
+                      <tr>
+                        <%# 月 %>
+                        <td class="align-middle"><%= ma.target_month.month %>月</td>
+                        <%# 指示者確認㊞ %>
+                        <td>
+                          <select name="monthly_approval_applications[<%= ma.id %>][status]"
+                                  class="form-select form-select-sm">
+                            <% %w[なし 申請中 承認 否認].each do |s| %>
+                              <option value="<%= s %>" <%= 'selected' if ma.status == s %>><%= s %></option>
+                            <% end %>
+                          </select>
+                        </td>
+                        <%# 変更チェックボックス %>
+                        <td class="align-middle">
+                          <input type="checkbox"
+                                 name="monthly_approval_applications[<%= ma.id %>][change]"
+                                 value="1">
+                        </td>
+                        <%# 勤怠を確認するボタン %>
+                        <td class="align-middle">
+                          <%= link_to "確認",
+                                      user_path(ma.user, date: ma.target_month, confirm: "true"),
+                                      class: "btn btn-app btn-sm" %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              <% end %>
+            <% end %>
           </div>
 
           <div class="modal-footer border-0">
@@ -560,33 +595,3 @@
   </div>
 <% end %>
 
-<%# 所属長承認申請フォーム（confirm=trueのときは非表示） %>
-<% unless params[:confirm] == "true" %>
-<div class="mt-3">
-  <%= form_with url: monthly_approval_applications_path, method: :post do |f| %>
-    <%= f.hidden_field :user_id, value: @user.id %>
-    <%= f.hidden_field :target_month, value: @first_day %>
-    <table class="table table-bordered text-center" style="width: auto;">
-      <tr>
-        <td class="align-middle">
-          所属長承認
-          <% if @monthly_approval %>
-            <%= @monthly_approval.supervisor.name %><br><%= @monthly_approval.status %>
-          <% else %>
-            なし
-          <% end %>
-        </td>
-        <td>
-          <%= f.select :supervisor_id,
-                       options_from_collection_for_select(@supervisors, :id, :name),
-                       { include_blank: true },
-                       { class: 'form-select form-select-sm' } %>
-        </td>
-        <td>
-          <%= f.submit '申請', class: 'btn btn-app btn-sm' %>
-        </td>
-      </tr>
-    </table>
-  <% end %>
-</div>
-<% end %>

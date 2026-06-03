@@ -7,6 +7,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   has_many :attendances, dependent: :destroy
+  has_many :attendance_change_applications, dependent: :destroy # 勤怠変更申請（申請者として）
 
   # CSVファイルからユーザーを一括登録する
   def self.import(csv_file)

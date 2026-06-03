@@ -28,10 +28,12 @@ class UsersController < ApplicationController
   end
 
   def index
+    # 自身を除いた全ユーザーを取得
+    base = User.where.not(id: current_user.id)
     @users = if params[:name].present?
-               User.where("name LIKE ?", "%#{params[:name]}%").paginate(page: params[:page], per_page: 20)
+               base.where("name LIKE ?", "%#{params[:name]}%").paginate(page: params[:page], per_page: 20)
              else
-               User.paginate(page: params[:page], per_page: 20)
+               base.paginate(page: params[:page], per_page: 20)
              end
   end
 
@@ -131,7 +133,7 @@ class UsersController < ApplicationController
   # 承認済みの勤怠変更申請を取得（年月フィルター対応）
   def fetch_approved_change_logs
     logs = @user.attendance_change_applications
-                .where(status: "承認済")
+                .where(status: "承認")
                 .includes(:attendance, :supervisor)
     return logs unless params[:year].present? && params[:month].present?
 
