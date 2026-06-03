@@ -12,7 +12,7 @@ class UsersController < ApplicationController
   before_action :deny_admin, only: %i[show edit update export_csv attendance_log]
   before_action :admin_or_correct_user, only: %i[show edit update export_csv attendance_log]
   before_action :set_one_month, only: %i[show edit update export_csv]
-  before_action :set_attendance_change_form_options, only: %i[edit update]
+  before_action :set_attendance_change_form_options, only: %i[show edit update]
 
   def user_attendance_index
     # 今日・出社済み・退社前 の勤怠レコードを持つユーザーを取得
@@ -43,18 +43,10 @@ class UsersController < ApplicationController
     # 上長ユーザーの場合のみ、自分への申請データと件数を取得
     set_superior_notice_data if current_user.superior?
 
-    # 所属長承認申請フォーム用：自身以外の上長ユーザーリスト
-    @supervisors = User.where(superior: true).where.not(id: current_user.id)
-
     # 残業申請データを attendance_id をキーにしたハッシュで取得
     @overtime_applications = OvertimeApplication
                              .where(attendance_id: @attendances.map(&:id))
                              .index_by(&:attendance_id)
-
-    # 勤怠変更申請データを attendance_id をキーにしたハッシュで取得
-    @change_applications = AttendanceChangeApplication
-                           .where(attendance_id: @attendances.map(&:id))
-                           .index_by(&:attendance_id)
 
     # 現在表示中の月の所属長承認申請状態
     @monthly_approval = MonthlyApprovalApplication.find_by(
@@ -255,7 +247,7 @@ class UsersController < ApplicationController
   end
 
   def set_attendance_change_form_options
-    @supervisors = User.where(superior: true).where.not(id: current_user.id)
+    @supervisors = User.supervisors_except(current_user)
     @change_applications = AttendanceChangeApplication
                            .where(attendance_id: @attendances.map(&:id))
                            .index_by(&:attendance_id)

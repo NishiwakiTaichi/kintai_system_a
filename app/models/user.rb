@@ -9,6 +9,9 @@ class User < ApplicationRecord
   has_many :attendances, dependent: :destroy
   has_many :attendance_change_applications, dependent: :destroy # 勤怠変更申請（申請者として）
 
+  # 上長ユーザーの中から指定ユーザーを除いたスコープ
+  scope :supervisors_except, ->(user) { where(superior: true).where.not(id: user.id) }
+
   # CSVファイルからユーザーを一括登録する
   def self.import(csv_file)
     CSV.foreach(csv_file.path, headers: true, encoding: "UTF-8") do |row|
