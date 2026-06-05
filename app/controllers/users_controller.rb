@@ -178,7 +178,7 @@ class UsersController < ApplicationController
   end
 
   def save_change_application(attendance, processed, supervisor_id, reason)
-    errors = validate_change_application(processed, attendance.worked_on)
+    errors = validate_change_application(processed, attendance.worked_on, attendance)
     if errors.any?
       @application_errors.concat(errors)
       return
@@ -204,13 +204,16 @@ class UsersController < ApplicationController
     attrs.permit(:started_at_hour, :started_at_minute, :finished_at_hour, :finished_at_minute, :note, :supervisor_id)
   end
 
-  def validate_change_application(processed, worked_on)
+  def validate_change_application(processed, worked_on, attendance)
     messages = []
     started = processed[:started_at]
     finished = processed[:finished_at]
 
-    # 出社のみ or 退社のみの入力はエラー
-    if started.present? && finished.blank?
+    # 出勤中（DBに退社時間がない）は出社時間のみの申請を許可する
+    currently_working = attendance.finished_at.nil?
+
+    # 出社のみ or 退社のみの入力はエラー（出勤中は出社のみOK）
+    if started.present? && finished.blank? && !currently_working
       messages << "#{worked_on.strftime('%m/%d')}: 退社時間も入力してください"
     elsif started.blank? && finished.present?
       messages << "#{worked_on.strftime('%m/%d')}: 出社時間も入力してください"
