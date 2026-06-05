@@ -4,7 +4,7 @@
   <%# CSVインポートフォーム %>
   <%= form_with url: import_users_path, method: :post, multipart: true, local: true do |f| %>
     <div class="d-flex flex-column align-items-start gap-2 mb-3">
-      <%= f.file_field :csv_file, accept: ".csv" %>
+      <%= f.file_field :csv_file, accept: ".csv", required: true %>
       <%= f.submit "CSVをインポート", class: "btn btn-app" %>
     </div>
   <% end %>
