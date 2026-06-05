@@ -21,9 +21,9 @@ class Attendance < ApplicationRecord
   end
 
   def started_at_and_finished_at_pair
-    # 当日出勤中（今日・出社済み・退社未記録）の場合のみスキップ
+    # 出勤中（昨日以降・出社済み・退社未記録）の場合のみスキップ（日またぎ対応）
     return if persisted? &&
-              worked_on == Date.current &&
+              worked_on >= Date.current - 1.day &&
               started_at_in_database.present? &&
               finished_at_in_database.nil?
     return unless started_at.present? && finished_at.blank?

@@ -232,8 +232,9 @@ class UsersController < ApplicationController
     ["#{worked_on.strftime('%m/%d')}: 退社時間は出社時間より後にしてください"]
   end
 
+  # 出勤中かどうか（昨日以降・出社済み・退社未記録）日またぎ対応
   def currently_working_today?(attendance)
-    attendance.worked_on == Date.current &&
+    attendance.worked_on >= Date.current - 1.day &&
       attendance.started_at.present? &&
       attendance.finished_at.nil?
   end
