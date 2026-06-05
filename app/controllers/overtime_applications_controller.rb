@@ -25,7 +25,7 @@ class OvertimeApplicationsController < ApplicationController
       status: "申請中"
     )
 
-    redirect_to user_path(ot[:user_id])
+    redirect_to user_path(ot[:user_id], date: attendance.worked_on.beginning_of_month)
   end
 
   def bulk_update
