@@ -248,13 +248,14 @@ class UsersController < ApplicationController
   def parse_overnight_time(attrs, worked_on)
     result = { note: attrs[:note] }
 
-    result[:started_at] = if attrs[:started_at_hour].present? && attrs[:started_at_minute].present?
+    # 「時」が選ばれていれば「分」未選択は0分として扱う
+    result[:started_at] = if attrs[:started_at_hour].present?
                             worked_on.beginning_of_day +
                               attrs[:started_at_hour].to_i.hours +
                               attrs[:started_at_minute].to_i.minutes
                           end
 
-    if attrs[:finished_at_hour].present? && attrs[:finished_at_minute].present?
+    if attrs[:finished_at_hour].present?
       hours = attrs[:finished_at_hour].to_i
       minutes = attrs[:finished_at_minute].to_i
       base_date = hours >= 24 ? worked_on.tomorrow : worked_on
