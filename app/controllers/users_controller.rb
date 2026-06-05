@@ -221,10 +221,11 @@ class UsersController < ApplicationController
     started = processed[:started_at]
     finished = processed[:finished_at]
     date_str = worked_on.strftime("%m/%d")
-    if started.present? && finished.blank? && !currently_working_today?(attendance)
+    if started.blank?
+      # 退社のみ・両方空どちらも出社時間が必須
+      ["#{date_str}: 出社時間を入力してください"]
+    elsif finished.blank? && !currently_working_today?(attendance)
       ["#{date_str}: 退社時間も入力してください"]
-    elsif started.blank? && finished.present?
-      ["#{date_str}: 出社時間も入力してください"]
     else
       []
     end
