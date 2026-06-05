@@ -122,7 +122,7 @@
           </td>
 
           <%# 出社列（時・分） %>
-          <% if day.worked_on == Date.current && day.started_at.nil? %>
+          <% if day.worked_on == Date.current && day.started_at.nil? && !@working_overnight %>
             <td colspan="2">
               <%= button_to "出社", user_attendance_path(@user, day),
                             method: :patch, class: "btn btn-app btn-sm" %>

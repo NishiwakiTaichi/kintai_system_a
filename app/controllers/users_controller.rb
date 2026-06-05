@@ -53,6 +53,12 @@ class UsersController < ApplicationController
       user_id: @user.id,
       target_month: @first_day
     )
+
+    # 昨日から日またぎ出勤中かどうか（翌日の出社ボタン非表示に使用）
+    @working_overnight = @user.attendances
+                              .where(worked_on: Date.current - 1.day)
+                              .where.not(started_at: nil)
+                              .exists?(finished_at: nil)
   end
 
   def export_csv
