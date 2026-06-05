@@ -206,25 +206,36 @@ class UsersController < ApplicationController
 
   def validate_change_application(processed, worked_on, attendance)
     messages = []
+    messages.concat(validate_time_pair(processed, worked_on, attendance))
+    messages.concat(validate_time_order(processed, worked_on))
+    messages
+  end
+
+  def validate_time_pair(processed, worked_on, attendance)
     started = processed[:started_at]
     finished = processed[:finished_at]
-
-    # 出勤中（DBに退社時間がない）は出社時間のみの申請を許可する
-    currently_working = attendance.finished_at.nil?
-
-    # 出社のみ or 退社のみの入力はエラー（出勤中は出社のみOK）
-    if started.present? && finished.blank? && !currently_working
-      messages << "#{worked_on.strftime('%m/%d')}: 退社時間も入力してください"
+    date_str = worked_on.strftime("%m/%d")
+    if started.present? && finished.blank? && !currently_working_today?(attendance)
+      ["#{date_str}: 退社時間も入力してください"]
     elsif started.blank? && finished.present?
-      messages << "#{worked_on.strftime('%m/%d')}: 出社時間も入力してください"
+      ["#{date_str}: 出社時間も入力してください"]
+    else
+      []
     end
+  end
 
-    # 退社時間は出社時間より後でなければならない
-    if started.present? && finished.present? && finished <= started
-      messages << "#{worked_on.strftime('%m/%d')}: 退社時間は出社時間より後にしてください"
-    end
+  def validate_time_order(processed, worked_on)
+    started = processed[:started_at]
+    finished = processed[:finished_at]
+    return [] unless started.present? && finished.present? && finished <= started
 
-    messages
+    ["#{worked_on.strftime('%m/%d')}: 退社時間は出社時間より後にしてください"]
+  end
+
+  def currently_working_today?(attendance)
+    attendance.worked_on == Date.current &&
+      attendance.started_at.present? &&
+      attendance.finished_at.nil?
   end
 
   def parse_overnight_time(attrs, worked_on)
