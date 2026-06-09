@@ -8,6 +8,9 @@ class AttendanceChangeApplicationsController < ApplicationController
       next unless attrs[:change] == "1"
 
       application = AttendanceChangeApplication.find(id)
+      next unless application.status == "申請中"
+      next unless %w[承認 否認].include?(attrs[:status])
+
       application.update(status: attrs[:status])
 
       # 承認された場合は勤怠データを実際の時刻で上書きする
