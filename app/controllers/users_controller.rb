@@ -160,15 +160,15 @@ class UsersController < ApplicationController
 
   def set_superior_notice_data
     @overtime_requests          = OvertimeApplication
-                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .where(supervisor_id: current_user.id, status: %w[申請中 否認])
                                   .includes(:user, :attendance)
     @overtime_count             = @overtime_requests.count
     @attendance_change_requests = AttendanceChangeApplication
-                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .where(supervisor_id: current_user.id, status: %w[申請中 否認])
                                   .includes(:user, :attendance)
     @attendance_change_count    = @attendance_change_requests.count
     @monthly_approval_requests  = MonthlyApprovalApplication
-                                  .where(supervisor_id: current_user.id, status: "申請中")
+                                  .where(supervisor_id: current_user.id, status: %w[申請中 否認])
                                   .includes(:user)
     @monthly_approval_count     = @monthly_approval_requests.count
   end
