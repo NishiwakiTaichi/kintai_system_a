@@ -143,12 +143,14 @@ class UsersController < ApplicationController
   def build_attendance_log_rows(logs)
     rows = logs.group_by(&:attendance_id).map do |_id, grouped|
       sorted = grouped.sort_by(&:created_at)
-      first  = sorted.first
-      last   = sorted.last
+      # 変更前がnilでない最初のレコードを「変更前」として使う
+      # （元々時刻なしの日付に初回申請した場合、before_started_atがnilになるため）
+      first_with_time = sorted.find { |r| r.before_started_at.present? } || sorted.first
+      last = sorted.last
       {
-        worked_on: first.attendance.worked_on,
-        before_started_at: first.before_started_at,
-        before_finished_at: first.before_finished_at,
+        worked_on: sorted.first.attendance.worked_on,
+        before_started_at: first_with_time.before_started_at,
+        before_finished_at: first_with_time.before_finished_at,
         after_started_at: last.after_started_at,
         after_finished_at: last.after_finished_at,
         supervisor_name: last.supervisor.name,
