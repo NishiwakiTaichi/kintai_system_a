@@ -30,6 +30,9 @@ class MonthlyApprovalApplicationsController < ApplicationController
       next unless attrs[:change] == "1"
 
       application = MonthlyApprovalApplication.find(id)
+      next unless application.status == "申請中"
+      next unless %w[承認 否認].include?(attrs[:status])
+
       application.update(status: attrs[:status])
     end
     redirect_back_or_to root_path, notice: "所属長承認申請を更新しました。"
