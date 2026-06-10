@@ -175,12 +175,10 @@ class UsersController < ApplicationController
 
   def process_attendance_row(attendance, attrs, processed)
     supervisor_id = attrs[:supervisor_id].presence
-    if supervisor_id
-      save_change_application(attendance, processed, supervisor_id, attrs[:note])
-    else
-      attendance.assign_attributes(processed)
-      @application_errors.concat(attendance.errors.full_messages) unless attendance.save(context: :edit_attendance)
-    end
+    # 仕様：指示者確認㊞が空欄の行はスキップ（バリデーションも保存も行わない）
+    return unless supervisor_id
+
+    save_change_application(attendance, processed, supervisor_id, attrs[:note])
   end
 
   def save_change_application(attendance, processed, supervisor_id, reason)
