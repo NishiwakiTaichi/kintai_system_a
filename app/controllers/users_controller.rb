@@ -190,11 +190,10 @@ class UsersController < ApplicationController
       return
     end
 
-    application = AttendanceChangeApplication.find_or_initialize_by(
+    # 毎回新規レコードを作成し、承認済み履歴を上書きしない
+    application = AttendanceChangeApplication.create(
       attendance_id: attendance.id,
-      user_id: @user.id
-    )
-    application.assign_attributes(
+      user_id: @user.id,
       supervisor_id: supervisor_id,
       before_started_at: attendance.started_at,
       before_finished_at: attendance.finished_at,
@@ -203,7 +202,7 @@ class UsersController < ApplicationController
       reason: reason,
       status: "申請中"
     )
-    @application_errors << "勤怠変更申請の保存に失敗しました" unless application.save
+    @application_errors << "勤怠変更申請の保存に失敗しました" unless application.persisted?
   end
 
   def attendance_params(attrs)
